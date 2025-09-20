@@ -9,17 +9,18 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Separator } from '@/components/ui/separator';
 import { Search, Clock } from 'lucide-react';
-import { HashTimestampClient, rentExemptForHash, to32Bytes, HashAccount, VoteInfo } from '@/lib/hashTimestamp';
+import { HashTimestampClient, rentExemptForHash, HashAccount, VoteInfo } from '@/lib/hashTimestamp';
+import { createProgram } from '@/lib/anchorSetup';
 import { hexToHash, hashToHex } from '@/lib/crypto';
 import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/hero-blockchain.jpg';
 
 export function FileTimestamp() {
   const { connection } = useConnection();
-  const { publicKey, connected } = useWallet();
+  const { publicKey, connected, wallet } = useWallet();
   const { toast } = useToast();
   
-  const [client] = useState(() => new HashTimestampClient(connection));
+  const [client, setClient] = useState<HashTimestampClient | null>(null);
   const [currentHash, setCurrentHash] = useState<Uint8Array | null>(null);
   const [currentFileName, setCurrentFileName] = useState<string | null>(null);
   const [hashAccount, setHashAccount] = useState<HashAccount | null>(null);
@@ -27,6 +28,25 @@ export function FileTimestamp() {
   const [rentAmount, setRentAmount] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [searchHash, setSearchHash] = useState('');
+
+  // Initialize client when wallet connects
+  useEffect(() => {
+    if (connected && wallet?.adapter) {
+      try {
+        const program = createProgram(connection, wallet.adapter);
+        setClient(new HashTimestampClient(program));
+      } catch (error) {
+        console.error('Failed to initialize HashTimestamp client:', error);
+        toast({
+          title: "Initialization failed",
+          description: "Failed to connect to HashTimestamp program",
+          variant: "destructive",
+        });
+      }
+    } else {
+      setClient(null);
+    }
+  }, [connected, wallet, connection, toast]);
 
   // Load rent amount on connection
   useEffect(() => {
@@ -86,14 +106,14 @@ export function FileTimestamp() {
   };
 
   const handleVote = async () => {
-    if (!currentHash || !connected) return;
+    if (!currentHash || !connected || !client) return;
     
     setIsLoading(true);
     try {
       const signature = await client.vote(currentHash);
       toast({
         title: "Vote submitted",
-        description: `Transaction: ${signature}`,
+        description: `Transaction: ${signature.slice(0, 8)}...`,
       });
       
       // Reload account data
@@ -103,10 +123,11 @@ export function FileTimestamp() {
         const vote = await client.fetchVoteInfo(currentHash, publicKey);
         setVoteInfo(vote);
       }
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Vote failed:', error);
       toast({
         title: "Vote failed",
-        description: "Failed to submit vote transaction",
+        description: error.message || "Failed to submit vote transaction",
         variant: "destructive",
       });
     } finally {
@@ -115,24 +136,25 @@ export function FileTimestamp() {
   };
 
   const handleUnvote = async () => {
-    if (!currentHash || !connected) return;
+    if (!currentHash || !connected || !client) return;
     
     setIsLoading(true);
     try {
       const signature = await client.unvote(currentHash);
       toast({
         title: "Vote withdrawn",
-        description: `Transaction: ${signature}`,
+        description: `Transaction: ${signature.slice(0, 8)}...`,
       });
       
       // Reload account data
       const account = await client.fetchHashAccount(currentHash);
       setHashAccount(account);
       setVoteInfo(null);
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Unvote failed:', error);
       toast({
         title: "Unvote failed",
-        description: "Failed to withdraw vote",
+        description: error.message || "Failed to withdraw vote",
         variant: "destructive",
       });
     } finally {
@@ -141,20 +163,21 @@ export function FileTimestamp() {
   };
 
   const handleVerify = async () => {
-    if (!currentHash) return;
+    if (!currentHash || !client) return;
     
     setIsLoading(true);
     try {
-      const signature = await client.verify(currentHash);
+      await client.verify(currentHash);
       toast({
         title: "Verification complete",
         description: hashAccount ? "Hash exists on-chain" : "Hash not found on-chain",
         variant: hashAccount ? "default" : "destructive",
       });
-    } catch (error) {
+    } catch (error: any) {
+      console.error('Verification failed:', error);
       toast({
         title: "Verification failed",
-        description: "Failed to verify hash on-chain",
+        description: error.message || "Failed to verify hash on-chain",
         variant: "destructive",
       });
     } finally {

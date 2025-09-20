@@ -1,29 +1,26 @@
-// Mock implementation of the HashTimestamp SDK
-// In a real implementation, this would use the actual Anchor SDK
+import * as anchor from "@coral-xyz/anchor";
+import { Program } from "@coral-xyz/anchor";
+import {
+  PublicKey,
+  SystemProgram,
+  Keypair,
+  Connection,
+  TransactionSignature,
+} from "@solana/web3.js";
+import { HashTimestamp, HashAccount, VoteInfo } from "../types/hash_timestamp";
 
-import { PublicKey, Connection, Keypair } from '@solana/web3.js';
-
-// Mock data structure matching the real HashTimestamp account
-export interface HashAccount {
-  hash: Uint8Array;
-  voters: number;
-  createdAt: number;
-  bump: number;
-}
-
-export interface VoteInfo {
-  voter: PublicKey;
-  hash: Uint8Array;
-  amount: number;
-  bump: number;
-}
-
-// Mock program ID - in real implementation this would be from the deployed program
+// Real program ID from the deployed HashTimestamp program
 export const PROGRAM_ID = new PublicKey('HTSx1VNWNBDGtfwr2nU8gSzhxfFtUxd2nkdFq7SCSZzY');
 
-export const HASH_ACCOUNT_SPACE = 64; // 8 + 32 + 8 + 8 + 1 + 7 padding
+// Re-export types for convenience
+export type { HashAccount, VoteInfo };
 
-export function to32Bytes(input: Uint8Array | Buffer | number[] | string): Uint8Array {
+// Must match on-chain layout
+export const HASH_ACCOUNT_SPACE = 8 /*disc*/ + 32 + 8 + 8 + 1 + 7; // 64 bytes
+
+export type HashBytes = Uint8Array | Buffer | number[] | string;
+
+export function to32Bytes(input: HashBytes): Uint8Array {
   let buf: Buffer;
   if (input instanceof Uint8Array) {
     buf = Buffer.from(input.buffer, input.byteOffset, input.byteLength);
@@ -32,99 +29,140 @@ export function to32Bytes(input: Uint8Array | Buffer | number[] | string): Uint8
   } else if (Array.isArray(input)) {
     buf = Buffer.from(input);
   } else {
-    buf = Buffer.from(input, 'hex');
+    buf = Buffer.from(input, "hex");
   }
-  if (buf.length !== 32) throw new Error('hash must be exactly 32 bytes');
+  if (buf.length !== 32) throw new Error("hash must be exactly 32 bytes");
   return new Uint8Array(buf);
 }
 
-export function deriveHashPda(programId: PublicKey, hash: Uint8Array): PublicKey {
+export function deriveHashPda(
+  programId: PublicKey,
+  hash: HashBytes
+): PublicKey {
+  const hashBytes = to32Bytes(hash);
   const [pda] = PublicKey.findProgramAddressSync(
-    [Buffer.from('hash'), Buffer.from(hash)],
+    [Buffer.from("hash"), Buffer.from(hashBytes)],
     programId
   );
   return pda;
 }
 
-export function deriveVotePda(programId: PublicKey, hashPda: PublicKey, voter: PublicKey): PublicKey {
+export function deriveVotePda(
+  programId: PublicKey,
+  hashPda: PublicKey,
+  voter: PublicKey
+): PublicKey {
   const [pda] = PublicKey.findProgramAddressSync(
-    [Buffer.from('vote'), hashPda.toBuffer(), voter.toBuffer()],
+    [Buffer.from("vote"), hashPda.toBuffer(), voter.toBuffer()],
     programId
   );
   return pda;
 }
 
-export async function rentExemptForHash(connection: Connection): Promise<number> {
-  return connection.getMinimumBalanceForRentExemption(HASH_ACCOUNT_SPACE);
+export async function rentExemptForHash(conn: Connection): Promise<number> {
+  return conn.getMinimumBalanceForRentExemption(HASH_ACCOUNT_SPACE);
 }
 
-// Mock HashTimestamp client for demonstration
 export class HashTimestampClient {
-  private connection: Connection;
-  private programId: PublicKey;
-
-  constructor(connection: Connection, programId: PublicKey = PROGRAM_ID) {
-    this.connection = connection;
-    this.programId = programId;
+  readonly program: Program<HashTimestamp>;
+  constructor(program: Program<HashTimestamp>) {
+    this.program = program;
   }
 
-  hashPda(hash: Uint8Array): PublicKey {
+  get connection(): Connection {
+    return this.program.provider.connection;
+  }
+  get programId(): PublicKey {
+    return this.program.programId;
+  }
+
+  hashPda(hash: HashBytes): PublicKey {
     return deriveHashPda(this.programId, hash);
   }
-
   votePda(hashPda: PublicKey, voter: PublicKey): PublicKey {
     return deriveVotePda(this.programId, hashPda, voter);
   }
 
-  // Mock implementation - in real app this would call the actual program
-  async vote(hash: Uint8Array): Promise<string> {
-    // Simulate transaction
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return 'mock_signature_' + Date.now();
-  }
+  async vote(hash: HashBytes, payer?: Keypair): Promise<TransactionSignature> {
+    const hashBytes = to32Bytes(hash);
+    const provider = this.program.provider as anchor.AnchorProvider;
+    const walletPk = payer ? payer.publicKey : provider.wallet.publicKey;
+    const hashPda = this.hashPda(hashBytes);
+    const votePda = this.votePda(hashPda, walletPk);
 
-  async unvote(hash: Uint8Array): Promise<string> {
-    // Simulate transaction
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return 'mock_signature_' + Date.now();
-  }
+    const builder = this.program.methods.vote([...hashBytes]).accountsStrict({
+      hashAccount: hashPda,
+      voteInfo: votePda,
+      user: walletPk,
+      systemProgram: SystemProgram.programId,
+    });
 
-  async verify(hash: Uint8Array): Promise<string> {
-    // Simulate transaction
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return 'mock_signature_' + Date.now();
-  }
-
-  // Mock data - in real implementation this would fetch from chain
-  async fetchHashAccount(hash: Uint8Array): Promise<HashAccount | null> {
-    // Simulate some hashes existing
-    const hashHex = Array.from(hash).map(b => b.toString(16).padStart(2, '0')).join('');
-    
-    // Create deterministic mock data based on hash
-    if (hashHex.startsWith('a') || hashHex.startsWith('b') || hashHex.startsWith('c')) {
-      return {
-        hash,
-        voters: Math.floor(Math.random() * 5) + 1,
-        createdAt: Date.now() / 1000 - Math.floor(Math.random() * 86400 * 30), // Random time in last 30 days
-        bump: 255,
-      };
+    if (payer) {
+      return builder.signers([payer]).rpc();
     }
-    
-    return null;
+    return builder.rpc();
   }
 
-  async fetchVoteInfo(hash: Uint8Array, voter: PublicKey): Promise<VoteInfo | null> {
-    // Mock implementation - randomly return vote info
-    const account = await this.fetchHashAccount(hash);
-    if (account && Math.random() > 0.5) {
-      const rentAmount = await rentExemptForHash(this.connection);
-      return {
-        voter,
-        hash,
-        amount: rentAmount,
-        bump: 255,
-      };
+  async unvote(
+    hash: HashBytes,
+    payer?: Keypair
+  ): Promise<TransactionSignature> {
+    const hashBytes = to32Bytes(hash);
+    const provider = this.program.provider as anchor.AnchorProvider;
+    const walletPk = payer ? payer.publicKey : provider.wallet.publicKey;
+    const hashPda = this.hashPda(hashBytes);
+    const votePda = this.votePda(hashPda, walletPk);
+
+    const builder = this.program.methods.unvote([...hashBytes]).accountsStrict({
+      hashAccount: hashPda,
+      voteInfo: votePda,
+      user: walletPk,
+      systemProgram: SystemProgram.programId,
+    });
+
+    if (payer) {
+      return builder.signers([payer]).rpc();
     }
-    return null;
+    return builder.rpc();
+  }
+
+  async verify(hash: HashBytes): Promise<TransactionSignature> {
+    const hashBytes = to32Bytes(hash);
+    const hashPda = this.hashPda(hashBytes);
+    return this.program.methods
+      .verify([...hashBytes])
+      .accountsStrict({ hashAccount: hashPda })
+      .rpc();
+  }
+
+  // Account helpers
+  async fetchHashAccount(hash: HashBytes) {
+    const hashPda = this.hashPda(hash);
+    // Prefer fetchNullable to avoid throwing on closed/cleared accounts
+    // @ts-ignore - older Anchor types may not have fetchNullable in types
+    if (this.program.account.HashAccount.fetchNullable) {
+      // @ts-ignore
+      return this.program.account.HashAccount.fetchNullable(hashPda);
+    }
+    try {
+      return await this.program.account.HashAccount.fetch(hashPda);
+    } catch (_) {
+      return null;
+    }
+  }
+
+  async fetchVoteInfo(hash: HashBytes, voter: PublicKey) {
+    const hashPda = this.hashPda(hash);
+    const votePda = this.votePda(hashPda, voter);
+    // @ts-ignore
+    if (this.program.account.VoteInfo.fetchNullable) {
+      // @ts-ignore
+      return this.program.account.VoteInfo.fetchNullable(votePda);
+    }
+    try {
+      return await this.program.account.VoteInfo.fetch(votePda);
+    } catch (_) {
+      return null;
+    }
   }
 }

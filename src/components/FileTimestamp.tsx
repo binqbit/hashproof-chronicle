@@ -178,7 +178,7 @@ export function FileTimestamp() {
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-5xl font-bold mb-4 gradient-primary bg-clip-text text-transparent">
-            FileTimestamp
+            File Timestamp
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
             Prove your file existed at a specific moment in time using Solana blockchain.
@@ -264,7 +264,7 @@ export function FileTimestamp() {
         {/* How It Works */}
         <Card className="mt-8 gradient-card shadow-card">
           <CardHeader>
-            <CardTitle>How FileTimestamp Works</CardTitle>
+            <CardTitle>How File Timestamp Works</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">

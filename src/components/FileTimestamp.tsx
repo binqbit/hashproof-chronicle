@@ -1,0 +1,303 @@
+import React, { useState, useEffect } from 'react';
+import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { FileUpload } from './FileUpload';
+import { HashDisplay } from './HashDisplay';
+import { WalletConnection } from './WalletConnection';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Label } from '@/components/ui/label';
+import { Separator } from '@/components/ui/separator';
+import { Search, Clock } from 'lucide-react';
+import { HashTimestampClient, rentExemptForHash, to32Bytes, HashAccount, VoteInfo } from '@/lib/hashTimestamp';
+import { hexToHash, hashToHex } from '@/lib/crypto';
+import { useToast } from '@/hooks/use-toast';
+import heroImage from '@/assets/hero-blockchain.jpg';
+
+export function FileTimestamp() {
+  const { connection } = useConnection();
+  const { publicKey, connected } = useWallet();
+  const { toast } = useToast();
+  
+  const [client] = useState(() => new HashTimestampClient(connection));
+  const [currentHash, setCurrentHash] = useState<Uint8Array | null>(null);
+  const [currentFileName, setCurrentFileName] = useState<string | null>(null);
+  const [hashAccount, setHashAccount] = useState<HashAccount | null>(null);
+  const [voteInfo, setVoteInfo] = useState<VoteInfo | null>(null);
+  const [rentAmount, setRentAmount] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [searchHash, setSearchHash] = useState('');
+
+  // Load rent amount on connection
+  useEffect(() => {
+    rentExemptForHash(connection).then(setRentAmount);
+  }, [connection]);
+
+  // Load hash account when hash changes
+  useEffect(() => {
+    if (!currentHash) return;
+    
+    const loadHashAccount = async () => {
+      setIsLoading(true);
+      try {
+        const account = await client.fetchHashAccount(currentHash);
+        setHashAccount(account);
+        
+        if (account && publicKey) {
+          const vote = await client.fetchVoteInfo(currentHash, publicKey);
+          setVoteInfo(vote);
+        }
+      } catch (error) {
+        console.error('Failed to load hash account:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadHashAccount();
+  }, [currentHash, publicKey, client]);
+
+  const handleHashGenerated = (hash: Uint8Array, fileName: string) => {
+    setCurrentHash(hash);
+    setCurrentFileName(fileName);
+  };
+
+  const handleSearchHash = () => {
+    if (searchHash.length !== 64) {
+      toast({
+        title: "Invalid hash",
+        description: "Hash must be exactly 64 hexadecimal characters",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const hash = hexToHash(searchHash);
+      setCurrentHash(hash);
+      setCurrentFileName(null);
+    } catch (error) {
+      toast({
+        title: "Invalid hash format",
+        description: "Please enter a valid hexadecimal hash",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleVote = async () => {
+    if (!currentHash || !connected) return;
+    
+    setIsLoading(true);
+    try {
+      const signature = await client.vote(currentHash);
+      toast({
+        title: "Vote submitted",
+        description: `Transaction: ${signature}`,
+      });
+      
+      // Reload account data
+      const account = await client.fetchHashAccount(currentHash);
+      setHashAccount(account);
+      if (publicKey) {
+        const vote = await client.fetchVoteInfo(currentHash, publicKey);
+        setVoteInfo(vote);
+      }
+    } catch (error) {
+      toast({
+        title: "Vote failed",
+        description: "Failed to submit vote transaction",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUnvote = async () => {
+    if (!currentHash || !connected) return;
+    
+    setIsLoading(true);
+    try {
+      const signature = await client.unvote(currentHash);
+      toast({
+        title: "Vote withdrawn",
+        description: `Transaction: ${signature}`,
+      });
+      
+      // Reload account data
+      const account = await client.fetchHashAccount(currentHash);
+      setHashAccount(account);
+      setVoteInfo(null);
+    } catch (error) {
+      toast({
+        title: "Unvote failed",
+        description: "Failed to withdraw vote",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleVerify = async () => {
+    if (!currentHash) return;
+    
+    setIsLoading(true);
+    try {
+      const signature = await client.verify(currentHash);
+      toast({
+        title: "Verification complete",
+        description: hashAccount ? "Hash exists on-chain" : "Hash not found on-chain",
+        variant: hashAccount ? "default" : "destructive",
+      });
+    } catch (error) {
+      toast({
+        title: "Verification failed",
+        description: "Failed to verify hash on-chain",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background relative">
+      {/* Hero Background */}
+      <div className="absolute inset-0 overflow-hidden">
+        <img 
+          src={heroImage} 
+          alt="Blockchain timestamping visualization"
+          className="w-full h-full object-cover opacity-20"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background"></div>
+      </div>
+      
+      <div className="relative container mx-auto px-4 py-8 max-w-4xl">
+        {/* Header */}
+        <div className="text-center mb-8">
+          <h1 className="text-5xl font-bold mb-4 gradient-primary bg-clip-text text-transparent">
+            FileTimestamp
+          </h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            Prove your file existed at a specific moment in time using Solana blockchain.
+            <br />
+            <span className="text-primary font-medium">Files are hashed locally - they never leave your device.</span>
+          </p>
+        </div>
+
+        {/* Wallet Connection */}
+        <div className="mb-8">
+          <WalletConnection />
+        </div>
+
+        <div className="grid gap-8 lg:grid-cols-2">
+          {/* Left Column - Upload and Search */}
+          <div className="space-y-6">
+            {/* File Upload */}
+            <FileUpload onHashGenerated={handleHashGenerated} />
+
+            {/* Hash Search */}
+            <Card className="gradient-card shadow-card">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Search className="h-5 w-5 text-primary" />
+                  Lookup Existing Hash
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div>
+                  <Label htmlFor="hash-search">SHA-256 Hash (64 characters)</Label>
+                  <Input
+                    id="hash-search"
+                    placeholder="Enter file hash to lookup timestamp..."
+                    value={searchHash}
+                    onChange={(e) => setSearchHash(e.target.value)}
+                    className="font-mono text-xs"
+                  />
+                </div>
+                <Button 
+                  variant="gradient"
+                  onClick={handleSearchHash}
+                  disabled={searchHash.length !== 64}
+                  className="w-full"
+                >
+                  <Search className="h-4 w-4 mr-2" />
+                  Search Timestamp
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Right Column - Hash Display */}
+          <div>
+            {currentHash ? (
+              <HashDisplay
+                hashInfo={{
+                  hash: currentHash,
+                  voters: hashAccount?.voters || 0,
+                  createdAt: hashAccount?.createdAt || Date.now() / 1000,
+                  fileName: currentFileName || undefined,
+                }}
+                rentAmount={rentAmount || undefined}
+                userHasVoted={!!voteInfo}
+                onVote={connected ? handleVote : undefined}
+                onUnvote={connected && voteInfo ? handleUnvote : undefined}
+                onVerify={handleVerify}
+                isLoading={isLoading}
+              />
+            ) : (
+              <Card className="gradient-card shadow-card h-full flex items-center justify-center">
+                <CardContent className="text-center p-8">
+                  <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                  <h3 className="text-lg font-semibold mb-2">No File Selected</h3>
+                  <p className="text-muted-foreground">
+                    Upload a file or search for an existing hash to view timestamp information
+                  </p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </div>
+
+        {/* How It Works */}
+        <Card className="mt-8 gradient-card shadow-card">
+          <CardHeader>
+            <CardTitle>How FileTimestamp Works</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-3">
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 font-bold">
+                  1
+                </div>
+                <h4 className="font-semibold mb-1">Hash Locally</h4>
+                <p className="text-sm text-muted-foreground">Files are hashed using SHA-256 in your browser</p>
+              </div>
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 font-bold">
+                  2
+                </div>
+                <h4 className="font-semibold mb-1">Vote & Timestamp</h4>
+                <p className="text-sm text-muted-foreground">Lock SOL to timestamp the hash on Solana blockchain</p>
+              </div>
+              <div className="text-center">
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 font-bold">
+                  3
+                </div>
+                <h4 className="font-semibold mb-1">Prove & Verify</h4>
+                <p className="text-sm text-muted-foreground">Anyone can verify the timestamp exists on-chain</p>
+              </div>
+            </div>
+            <Separator />
+            <div className="text-sm text-muted-foreground">
+              <strong>Privacy:</strong> Only the file hash is stored on-chain, never the file contents. 
+              Your files remain completely private on your device.
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}

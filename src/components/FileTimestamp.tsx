@@ -61,11 +61,11 @@ export function FileTimestamp() {
       setIsLoading(true);
       try {
         const account = await client.fetchHashAccount(currentHash);
-        setHashAccount(account);
+        setHashAccount(account as HashAccount | null);
         
         if (account && publicKey) {
           const vote = await client.fetchVoteInfo(currentHash, publicKey);
-          setVoteInfo(vote);
+          setVoteInfo(vote as VoteInfo | null);
         }
       } catch (error) {
         console.error('Failed to load hash account:', error);
@@ -118,10 +118,10 @@ export function FileTimestamp() {
       
       // Reload account data
       const account = await client.fetchHashAccount(currentHash);
-      setHashAccount(account);
+      setHashAccount(account as HashAccount | null);
       if (publicKey) {
         const vote = await client.fetchVoteInfo(currentHash, publicKey);
-        setVoteInfo(vote);
+        setVoteInfo(vote as VoteInfo | null);
       }
     } catch (error: any) {
       console.error('Vote failed:', error);
@@ -148,7 +148,7 @@ export function FileTimestamp() {
       
       // Reload account data
       const account = await client.fetchHashAccount(currentHash);
-      setHashAccount(account);
+      setHashAccount(account as HashAccount | null);
       setVoteInfo(null);
     } catch (error: any) {
       console.error('Unvote failed:', error);
@@ -259,8 +259,8 @@ export function FileTimestamp() {
               <HashDisplay
                 hashInfo={{
                   hash: currentHash,
-                  voters: hashAccount?.voters || 0,
-                  createdAt: hashAccount?.createdAt || Date.now() / 1000,
+                  voters: Number(hashAccount?.voters || 0),
+                  createdAt: Number(hashAccount?.createdAt || Date.now() / 1000),
                   fileName: currentFileName || undefined,
                 }}
                 rentAmount={rentAmount || undefined}

@@ -140,12 +140,12 @@ export class HashTimestampClient {
     const hashPda = this.hashPda(hash);
     // Prefer fetchNullable to avoid throwing on closed/cleared accounts
     // @ts-ignore - older Anchor types may not have fetchNullable in types
-    if (this.program.account.HashAccount.fetchNullable) {
+    if (this.program.account.hashAccount.fetchNullable) {
       // @ts-ignore
-      return this.program.account.HashAccount.fetchNullable(hashPda);
+      return this.program.account.hashAccount.fetchNullable(hashPda);
     }
     try {
-      return await this.program.account.HashAccount.fetch(hashPda);
+      return await this.program.account.hashAccount.fetch(hashPda);
     } catch (_) {
       return null;
     }
@@ -155,12 +155,12 @@ export class HashTimestampClient {
     const hashPda = this.hashPda(hash);
     const votePda = this.votePda(hashPda, voter);
     // @ts-ignore
-    if (this.program.account.VoteInfo.fetchNullable) {
+    if (this.program.account.voteInfo.fetchNullable) {
       // @ts-ignore
-      return this.program.account.VoteInfo.fetchNullable(votePda);
+      return this.program.account.voteInfo.fetchNullable(votePda);
     }
     try {
-      return await this.program.account.VoteInfo.fetch(votePda);
+      return await this.program.account.voteInfo.fetch(votePda);
     } catch (_) {
       return null;
     }

@@ -100,23 +100,6 @@ export function OnChainInfoDialog({ hash, userHasVoted = false }: OnChainInfoDia
             </p>
           </div>
 
-          {/* Hash Info */}
-          <div>
-            <label className="text-sm font-medium text-muted-foreground">File Hash (SHA-256)</label>
-            <div className="flex items-center gap-2 mt-1">
-              <code className="flex-1 text-xs font-mono bg-secondary/50 p-2 rounded break-all">
-                {hashToHex(hash)}
-              </code>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => copyToClipboard(hashToHex(hash), 'Hash')}
-                className="shrink-0"
-              >
-                <Copy className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
 
           {/* Hash Account PDA */}
           <div>

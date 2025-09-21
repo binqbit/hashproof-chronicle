@@ -1,5 +1,11 @@
 # Welcome to your Lovable project
 
+## Smart Contract
+
+This project FileTimestamp uses a Smart Contract HashTimestamp under the hood to manage the file hashes:
+
+- [HashTimestamp Smart Contract](https://github.com/binqbit/hash-timestamp)
+
 ## Project info
 
 **URL**: https://lovable.dev/projects/48cac0b2-dcda-409e-9331-b82254e1d482

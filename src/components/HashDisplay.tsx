@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { hashToHex, formatTimestamp, formatSOL } from '@/lib/crypto';
 import { useToast } from '@/hooks/use-toast';
+import { OnChainInfoDialog } from './OnChainInfoDialog';
 
 interface HashInfo {
   hash: Uint8Array;
@@ -130,6 +131,11 @@ export function HashDisplay({
               Verify (Free)
             </Button>
           )}
+          
+          <OnChainInfoDialog 
+            hash={hashInfo.hash} 
+            userHasVoted={userHasVoted} 
+          />
           
           {onVote && !userHasVoted && (
             <Button 

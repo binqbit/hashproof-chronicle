@@ -14,8 +14,7 @@ import { HashTimestampClient, rentExemptForHash, HashAccount, VoteInfo } from '@
 import { createProgram } from '@/lib/anchorSetup';
 import { hexToHash, hashToHex } from '@/lib/crypto';
 import { useToast } from '@/hooks/use-toast';
-import heroImage from '@/assets/hero-blockchain.jpg';
-import cryptoBg from '@/assets/crypto-security-bg.jpg';
+import cryptoBg from '@/assets/hero-blockchain.jpg';
 import { Navigation } from './Navigation';
 
 export function FileTimestamp() {
@@ -256,7 +255,7 @@ export function FileTimestamp() {
       <Navigation />
       
       {/* Crypto Security Background */}
-      <div className="fixed inset-0 -z-10">
+      <div className="pointer-events-none fixed inset-0 z-0">
         <img 
           src={cryptoBg} 
           alt="Cryptographic security and hashing visualization"
@@ -272,7 +271,7 @@ export function FileTimestamp() {
         </div>
       </div>
       
-      <div className="relative container mx-auto px-4 py-8 max-w-4xl">
+      <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         {/* Compact Description */}
         <div className="text-center mb-8">
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto">

@@ -290,6 +290,11 @@ export function FileTimestamp() {
           </p>
         </div>
 
+        {/* Wallet Connection */}
+        <div className="mb-8">
+          <WalletConnection />
+        </div>
+
         <div className="grid gap-8 lg:grid-cols-2">
           {/* Left Column - Upload and Search */}
           <div className="space-y-6">

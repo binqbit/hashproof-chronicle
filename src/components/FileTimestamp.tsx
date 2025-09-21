@@ -56,29 +56,60 @@ export function FileTimestamp() {
   // Load hash account when hash changes
   useEffect(() => {
     const activeClient = client;
-    if (!currentHash || !activeClient) return;
-    
+
+    if (!currentHash || !activeClient) {
+      setHashAccount(null);
+      setVoteInfo(null);
+      setIsLoading(false);
+      return;
+    }
+
+    let isCancelled = false;
+
     const loadHashAccount = async () => {
       setIsLoading(true);
+      setHashAccount(null);
+      setVoteInfo(null);
+
       try {
         const account = await activeClient.fetchHashAccount(currentHash);
+        if (isCancelled) {
+          return;
+        }
+
         setHashAccount(account as HashAccount | null);
-        
+
         if (account && publicKey) {
           const vote = await activeClient.fetchVoteInfo(currentHash, publicKey);
-          setVoteInfo(vote as VoteInfo | null);
+          if (!isCancelled) {
+            setVoteInfo(vote as VoteInfo | null);
+          }
+        } else if (!isCancelled) {
+          setVoteInfo(null);
         }
       } catch (error) {
-        console.error('Failed to load hash account:', error);
+        if (!isCancelled) {
+          console.error('Failed to load hash account:', error);
+          setHashAccount(null);
+          setVoteInfo(null);
+        }
       } finally {
-        setIsLoading(false);
+        if (!isCancelled) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadHashAccount();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [currentHash, publicKey, client]);
 
   const handleHashGenerated = (hash: Uint8Array, fileName: string) => {
+    setHashAccount(null);
+    setVoteInfo(null);
     setCurrentHash(hash);
     setCurrentFileName(fileName);
   };
@@ -95,6 +126,8 @@ export function FileTimestamp() {
 
     try {
       const hash = hexToHash(searchHash);
+      setHashAccount(null);
+      setVoteInfo(null);
       setCurrentHash(hash);
       setCurrentFileName(null);
     } catch (error) {

@@ -14,7 +14,7 @@ import { HashTimestampClient, rentExemptForHash, HashAccount, VoteInfo } from '@
 import { createProgram } from '@/lib/anchorSetup';
 import { hexToHash, hashToHex } from '@/lib/crypto';
 import { useToast } from '@/hooks/use-toast';
-import cryptoBg from '@/assets/hero-blockchain.jpg';
+import cryptoBg from '@/assets/crypto-security-bg.jpg';
 import { Navigation } from './Navigation';
 
 export function FileTimestamp() {

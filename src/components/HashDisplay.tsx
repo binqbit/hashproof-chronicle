@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Copy, Clock, Users, Shield, ExternalLink } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -74,7 +75,15 @@ export function HashDisplay({
 
         {/* Hash */}
         <div>
-          <label className="text-sm font-medium text-muted-foreground">SHA-256 Hash</label>
+          <div className="flex items-center justify-between">
+            <label className="text-sm font-medium text-muted-foreground">SHA-256 Hash</label>
+            <Link to={`/hash/${hexHash}`}>
+              <Button variant="ghost" size="sm" className="text-xs">
+                <ExternalLink className="h-3 w-3 mr-1" />
+                Permalink
+              </Button>
+            </Link>
+          </div>
           <div className="flex items-center gap-2 mt-1">
             <code className="flex-1 text-xs font-mono bg-secondary/50 p-2 rounded break-all">
               {hexHash}

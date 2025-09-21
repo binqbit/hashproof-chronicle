@@ -12,14 +12,14 @@ export function NavbarWallet() {
           {publicKey.toBase58().slice(0, 6)}...{publicKey.toBase58().slice(-4)}
         </div>
       )}
-      <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !h-9 !text-sm !px-4 shadow-neon !border !border-primary/50 transition-all duration-300">
+      <WalletMultiButton className="gradient-primary hover:opacity-90 !h-10 !text-sm !px-6 shadow-neon !border-2 !border-primary/60 hover:!border-primary/80 transition-all duration-300 !rounded-lg glow-primary !font-semibold neon-card-subtle">
         <svg 
           width="16" 
           height="16" 
           viewBox="0 0 24 24" 
           fill="none" 
           stroke="currentColor" 
-          strokeWidth="2" 
+          strokeWidth="2.5" 
           strokeLinecap="round" 
           strokeLinejoin="round"
           className="!inline !mr-2"

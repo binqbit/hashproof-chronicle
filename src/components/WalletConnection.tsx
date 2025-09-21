@@ -20,20 +20,20 @@ export function WalletConnection() {
                   <span className="text-primary font-mono neon-text">{publicKey?.toBase58().slice(0, 8)}...{publicKey?.toBase58().slice(-8)}</span>
                 </p>
               ) : (
-                <p className="text-sm text-muted-foreground">
-                  Connect to vote and support timestamps
+                <p className="text-sm neon-text">
+                  Connect a wallet on Solana to continue
                 </p>
               )}
             </div>
           </div>
-          <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !h-10 shadow-neon !border !border-primary/50 hover:!shadow-xl transition-all duration-300 !flex !items-center !gap-2 !font-semibold">
+          <WalletMultiButton className="gradient-primary hover:opacity-90 !h-12 shadow-neon !border-2 !border-primary/60 hover:!border-primary/80 hover:!shadow-xl transition-all duration-300 !flex !items-center !gap-3 !font-semibold !px-8 !rounded-lg glow-primary neon-card-subtle">
             <svg 
-              width="18" 
-              height="18" 
+              width="20" 
+              height="20" 
               viewBox="0 0 24 24" 
               fill="none" 
               stroke="currentColor" 
-              strokeWidth="2" 
+              strokeWidth="2.5" 
               strokeLinecap="round" 
               strokeLinejoin="round"
               className="!inline"
@@ -48,7 +48,7 @@ export function WalletConnection() {
           <div className="mt-4 flex items-start gap-2 text-xs text-muted-foreground bg-secondary/30 p-3 rounded">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />
             <div>
-              <p className="font-medium">Wallet Required for Full Features</p>
+              <p className="font-medium neon-text">Wallet Required for Full Features</p>
               <p>Connect a Solana wallet to vote for timestamps, which locks a small SOL deposit to keep records active.</p>
             </div>
           </div>

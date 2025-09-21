@@ -389,9 +389,11 @@ export function FileTimestamp() {
               </div>
             </div>
             <Separator />
-            <div className="text-sm text-muted-foreground">
-              <strong>Privacy:</strong> Only the file hash is stored on-chain, never the file contents. 
-              Your files remain completely private on your device.
+            <div className="bg-muted/50 p-4 rounded-lg border border-primary/20">
+              <p className="text-sm text-muted-foreground">
+                <strong className="text-primary">Privacy:</strong> Only the file hash is stored on-chain, never the file contents. 
+                Your files remain completely private on your device.
+              </p>
             </div>
           </CardContent>
         </Card>

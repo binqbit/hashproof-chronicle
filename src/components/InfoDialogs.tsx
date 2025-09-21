@@ -126,7 +126,7 @@ export function WhyNeededDialog() {
             </div>
           </div>
           
-          <div className="bg-primary/10 p-4 rounded-lg border border-primary/25">
+          <div className="bg-muted/50 p-4 rounded-lg border border-primary/20">
             <p className="text-sm text-muted-foreground">
               <strong className="text-primary">The Goal:</strong> Enable anyone to verify that a file existed at a specific time, 
               backed by the security and transparency of blockchain technology.
@@ -196,9 +196,9 @@ export function UseCasesDialog() {
             </div>
           </div>
           
-          <div className="bg-accent/20 p-4 rounded-lg border border-accent/30">
+          <div className="bg-muted/50 p-4 rounded-lg border border-primary/20">
             <p className="text-sm text-muted-foreground">
-              <strong className="text-accent">Enhanced Security:</strong> When combined with digital signatures or other 
+              <strong className="text-primary">Enhanced Security:</strong> When combined with digital signatures or other 
               authentication methods, timestamp verification provides comprehensive file integrity 
               and authenticity assurance over time.
             </p>
@@ -251,7 +251,7 @@ export function DeveloperResourcesDialog() {
             </div>
           </div>
           
-          <div className="bg-primary/10 p-4 rounded-lg border border-primary/25">
+          <div className="bg-muted/50 p-4 rounded-lg border border-primary/20">
             <div className="flex items-center justify-between">
               <div>
                 <p className="font-semibold text-primary mb-1">Hash Timestamp Smart Contract</p>

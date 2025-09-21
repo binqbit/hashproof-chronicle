@@ -248,11 +248,9 @@ export function FileTimestamp() {
         {/* Wallet Connection */}
         <div className="mb-8">
           <WalletConnection />
-        </div>
-
-        {/* Information Buttons */}
-        <div className="mb-8">
-          <InfoButtons />
+          <div className="mt-4">
+            <InfoButtons />
+          </div>
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">

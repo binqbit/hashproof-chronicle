@@ -14,7 +14,7 @@ import { createProgram } from '@/lib/anchorSetup';
 import { hexToHash, hashToHex } from '@/lib/crypto';
 import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/hero-blockchain.jpg';
-import { InfoButtons } from './InfoDialogs';
+import { Navigation } from './Navigation';
 
 export function FileTimestamp() {
   const { connection } = useConnection();
@@ -222,8 +222,11 @@ export function FileTimestamp() {
 
   return (
     <div className="min-h-screen bg-background relative">
+      {/* Navigation */}
+      <Navigation />
+      
       {/* Hero Background */}
-      <div className="absolute inset-0 overflow-hidden">
+      <div className="absolute inset-0 overflow-hidden -z-10">
         <img 
           src={heroImage} 
           alt="Blockchain timestamping visualization"
@@ -233,26 +236,13 @@ export function FileTimestamp() {
       </div>
       
       <div className="relative container mx-auto px-4 py-8 max-w-4xl">
-        {/* Header */}
+        {/* Compact Description */}
         <div className="text-center mb-8">
-          <h1 className="text-5xl font-bold mb-4 gradient-primary bg-clip-text text-transparent">
-            File Timestamp
-          </h1>
-          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
             Prove your file existed at a specific moment in time using Solana blockchain.
             <br />
             <span className="text-primary font-medium">Files are hashed locally - they never leave your device.</span>
           </p>
-        </div>
-
-        {/* Information Buttons */}
-        <div className="mb-8">
-          <InfoButtons />
-        </div>
-
-        {/* Wallet Connection */}
-        <div className="mb-8">
-          <WalletConnection />
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">

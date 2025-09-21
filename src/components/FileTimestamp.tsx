@@ -21,7 +21,7 @@ export function FileTimestamp() {
   const { hash: urlHash } = useParams<{ hash: string }>();
   const navigate = useNavigate();
   const { connection } = useConnection();
-  const { publicKey, connected, wallet } = useWallet();
+  const { publicKey, connected, wallet, signTransaction, signAllTransactions } = useWallet();
   const { toast } = useToast();
   
   const [client, setClient] = useState<HashTimestampClient | null>(null);
@@ -35,9 +35,16 @@ export function FileTimestamp() {
 
   // Initialize client when wallet connects
   useEffect(() => {
-    if (connected && wallet?.adapter) {
+    if (connected && publicKey && signTransaction && signAllTransactions) {
       try {
-        const program = createProgram(connection, wallet.adapter);
+        // Create wallet object that anchor can use
+        const anchorWallet = {
+          publicKey,
+          signTransaction,
+          signAllTransactions,
+        };
+        
+        const program = createProgram(connection, anchorWallet);
         setClient(new HashTimestampClient(program));
       } catch (error) {
         console.error('Failed to initialize HashTimestamp client:', error);
@@ -50,7 +57,7 @@ export function FileTimestamp() {
     } else {
       setClient(null);
     }
-  }, [connected, wallet, connection, toast]);
+  }, [connected, publicKey, signTransaction, signAllTransactions, connection, toast]);
 
   // Load rent amount on connection
   useEffect(() => {

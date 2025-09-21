@@ -1,7 +1,6 @@
 import * as anchor from "@coral-xyz/anchor";
 import type { Program, Idl } from "@coral-xyz/anchor";
 import type { Connection } from "@solana/web3.js";
-import type { WalletAdapter } from "@solana/wallet-adapter-base";
 import { HashTimestamp } from "../types/hash_timestamp";
 import { PROGRAM_ID } from "./hashTimestamp";
 
@@ -73,25 +72,7 @@ const IDL: any = {
   ]
 };
 
-function ensureAnchorWallet(adapter: WalletAdapter): anchor.Wallet {
-  if (!adapter.publicKey) {
-    throw new Error("Wallet must be connected before creating the Anchor provider");
-  }
-
-  return {
-    publicKey: adapter.publicKey,
-    signTransaction: async (tx: any) => {
-      return tx; // For now, return the transaction as-is
-    },
-    signAllTransactions: async (txs: any[]) => {
-      return txs; // For now, return the transactions as-is
-    },
-    payer: {} as any
-  };
-}
-
-export function createProgram(connection: Connection, adapter: WalletAdapter): Program<HashTimestamp> {
-  const wallet = ensureAnchorWallet(adapter);
+export function createProgram(connection: Connection, wallet: any): Program<HashTimestamp> {
   const provider = new anchor.AnchorProvider(connection, wallet, { commitment: "confirmed" });
   return new anchor.Program(IDL, PROGRAM_ID, provider) as Program<HashTimestamp>;
 }

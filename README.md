@@ -42,6 +42,26 @@ npm i
 npm run dev
 ```
 
+## How do I build and preview the production bundle?
+
+When you need an optimized build for distribution or to share a ready-made bundle, run:
+
+```sh
+npm run build
+```
+
+To inspect that build locally with working `/hash/<hash>` deep links, serve the `dist` folder in single-page-app mode:
+
+```sh
+npx serve -s dist -l 3000
+```
+
+The `-s` flag rewrites every request to `index.html`, so the React router can handle routes such as `/hash/dffd6021...` even after a full page refresh. Alternatively, Vite's built-in preview server also applies the correct fallback:
+
+```sh
+npm run preview -- --host 0.0.0.0 --port 3000
+```
+
 **Edit a file directly in GitHub**
 
 - Navigate to the desired file(s).

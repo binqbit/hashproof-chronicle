@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useConnection, useWallet } from '@solana/wallet-adapter-react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { FileUpload } from './FileUpload';
 import { HashDisplay } from './HashDisplay';
 import { WalletConnection } from './WalletConnection';
@@ -17,6 +18,8 @@ import heroImage from '@/assets/hero-blockchain.jpg';
 import { Navigation } from './Navigation';
 
 export function FileTimestamp() {
+  const { hash: urlHash } = useParams<{ hash: string }>();
+  const navigate = useNavigate();
   const { connection } = useConnection();
   const { publicKey, connected, wallet } = useWallet();
   const { toast } = useToast();
@@ -53,6 +56,32 @@ export function FileTimestamp() {
   useEffect(() => {
     rentExemptForHash(connection).then(setRentAmount);
   }, [connection]);
+
+  // Handle URL hash parameter
+  useEffect(() => {
+    if (urlHash && urlHash.length === 64) {
+      try {
+        const hash = hexToHash(urlHash);
+        setCurrentHash(hash);
+        setCurrentFileName(null);
+      } catch (error) {
+        console.error('Invalid hash in URL:', error);
+        navigate('/');
+      }
+    }
+  }, [urlHash, navigate]);
+
+  // Sync URL when current hash changes
+  useEffect(() => {
+    if (currentHash) {
+      const hexHash = hashToHex(currentHash);
+      if (window.location.pathname !== `/hash/${hexHash}`) {
+        navigate(`/hash/${hexHash}`, { replace: true });
+      }
+    } else if (window.location.pathname !== '/') {
+      navigate('/', { replace: true });
+    }
+  }, [currentHash, navigate]);
 
   // Load hash account when hash changes
   useEffect(() => {

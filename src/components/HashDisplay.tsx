@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Copy, Clock, Users, Shield, ExternalLink } from 'lucide-react';
+import { Copy, Clock, Users, Shield, ExternalLink, Link as LinkIcon } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -56,12 +56,40 @@ export function HashDisplay({
     }
   };
 
+  const copyLinkToClipboard = async () => {
+    try {
+      const url = `${window.location.origin}/hash/${hexHash}`;
+      await navigator.clipboard.writeText(url);
+      toast({
+        title: "Link copied",
+        description: "Direct link to this hash copied to clipboard",
+      });
+    } catch (error) {
+      toast({
+        title: "Copy failed",
+        description: "Failed to copy link to clipboard",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
     <Card className="gradient-card shadow-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Shield className="h-5 w-5 text-primary" />
-          File Timestamp Record
+        <CardTitle className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Shield className="h-5 w-5 text-primary" />
+            File Timestamp Record
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={copyLinkToClipboard}
+            className="text-xs"
+          >
+            <LinkIcon className="h-4 w-4 mr-1" />
+            Copy Link
+          </Button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
@@ -75,15 +103,7 @@ export function HashDisplay({
 
         {/* Hash */}
         <div>
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium text-muted-foreground">SHA-256 Hash</label>
-            <Link to={`/hash/${hexHash}`}>
-              <Button variant="ghost" size="sm" className="text-xs">
-                <ExternalLink className="h-3 w-3 mr-1" />
-                Permalink
-              </Button>
-            </Link>
-          </div>
+          <label className="text-sm font-medium text-muted-foreground">SHA-256 Hash</label>
           <div className="flex items-center gap-2 mt-1">
             <code className="flex-1 text-xs font-mono bg-secondary/50 p-2 rounded break-all">
               {hexHash}

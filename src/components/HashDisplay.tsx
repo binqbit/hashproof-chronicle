@@ -191,7 +191,7 @@ export function HashDisplay({
             <strong className="text-primary">How it works:</strong> Voting locks SOL to keep this timestamp active on Solana. 
             The deposit is fully refundable when you withdraw your vote.
             {hashInfo.voters === 1 && userHasVoted && (
-              <span className="text-warning neon-text-strong"> You're the only supporter - withdrawing will erase this timestamp.</span>
+              <span className="text-warning"> You're the only supporter - withdrawing will erase this timestamp.</span>
             )}
           </p>
         </div>

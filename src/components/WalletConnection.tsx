@@ -8,7 +8,7 @@ export function WalletConnection() {
   const { connected, publicKey } = useWallet();
 
   return (
-    <Card className="gradient-card shadow-card">
+    <Card className="gradient-card shadow-card neon-card-subtle">
       <CardContent className="p-6">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">

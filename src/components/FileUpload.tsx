@@ -50,7 +50,7 @@ export function FileUpload({ onHashGenerated }: FileUploadProps) {
   }, [handleFile]);
 
   return (
-    <Card className="gradient-card shadow-card">
+    <Card className="gradient-card shadow-card neon-card-subtle">
       <CardContent className="p-6">
         <div 
           className={`file-upload-area ${dragOver ? 'drag-over' : ''}`}

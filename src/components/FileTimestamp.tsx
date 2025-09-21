@@ -297,7 +297,7 @@ export function FileTimestamp() {
             <FileUpload onHashGenerated={handleHashGenerated} />
 
             {/* Hash Search */}
-            <Card className="gradient-card shadow-card">
+            <Card className="gradient-card shadow-card neon-card-subtle">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Search className="h-5 w-5 text-primary" />
@@ -346,7 +346,7 @@ export function FileTimestamp() {
                 isLoading={isLoading}
               />
             ) : (
-              <Card className="gradient-card shadow-card h-full flex items-center justify-center">
+              <Card className="gradient-card shadow-card h-full flex items-center justify-center neon-card-subtle">
                 <CardContent className="text-center p-8">
                   <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
                   <h3 className="text-lg font-semibold mb-2">No File Selected</h3>
@@ -360,7 +360,7 @@ export function FileTimestamp() {
         </div>
 
         {/* How It Works */}
-        <Card className="mt-8 gradient-card shadow-card">
+        <Card className="mt-8 gradient-card shadow-card neon-card-subtle">
           <CardHeader>
             <CardTitle>How File Timestamp Works</CardTitle>
           </CardHeader>

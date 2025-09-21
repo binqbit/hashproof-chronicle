@@ -74,7 +74,7 @@ export function HashDisplay({
   };
 
   return (
-    <Card className="gradient-card shadow-card">
+    <Card className="gradient-card shadow-card neon-card-subtle">
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">

@@ -1,4 +1,5 @@
 import React from 'react';
+import { ShieldCheck } from 'lucide-react';
 import { NavbarWallet } from './NavbarWallet';
 import { InfoButtons } from './InfoDialogs';
 
@@ -9,9 +10,15 @@ export function Navigation() {
         <div className="flex items-center justify-between">
           {/* Left side - Title and Info Buttons */}
           <div className="flex items-center gap-6">
-            <h1 className="text-2xl font-bold gradient-primary bg-clip-text text-transparent">
-              File Timestamp
-            </h1>
+            <div className="flex items-center gap-3">
+              <ShieldCheck 
+                className="w-8 h-8 text-primary glow-primary" 
+                strokeWidth={2}
+              />
+              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent drop-shadow-lg">
+                File Timestamp
+              </h1>
+            </div>
             <div className="hidden md:flex">
               <InfoButtons />
             </div>

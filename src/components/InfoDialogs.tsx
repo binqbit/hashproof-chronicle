@@ -71,9 +71,9 @@ export function HowItWorksDialog() {
             </div>
           </div>
           
-          <div className="bg-muted/50 p-4 rounded-lg">
-            <p className="text-sm">
-              <strong>Key Benefit:</strong> Multiple parties can collaborate to preserve important timestamps, 
+          <div className="bg-muted/50 p-4 rounded-lg border border-primary/30 neon-card-subtle">
+            <p className="text-sm neon-text">
+              <strong className="text-primary">Key Benefit:</strong> Multiple parties can collaborate to preserve important timestamps, 
               creating a shared responsibility model for digital record keeping.
             </p>
           </div>
@@ -126,9 +126,9 @@ export function WhyNeededDialog() {
             </div>
           </div>
           
-          <div className="bg-primary/10 p-4 rounded-lg">
-            <p className="text-sm">
-              <strong>The Goal:</strong> Enable anyone to verify that a file existed at a specific time, 
+          <div className="bg-primary/10 p-4 rounded-lg border border-primary/40 neon-card-subtle shadow-neon">
+            <p className="text-sm neon-text">
+              <strong className="text-primary">The Goal:</strong> Enable anyone to verify that a file existed at a specific time, 
               backed by the security and transparency of blockchain technology.
             </p>
           </div>
@@ -196,9 +196,9 @@ export function UseCasesDialog() {
             </div>
           </div>
           
-          <div className="bg-accent/20 p-4 rounded-lg">
-            <p className="text-sm">
-              <strong>Enhanced Security:</strong> When combined with digital signatures or other 
+          <div className="bg-accent/20 p-4 rounded-lg border border-accent/50 neon-card-subtle glow-neon-purple">
+            <p className="text-sm neon-text">
+              <strong className="text-accent">Enhanced Security:</strong> When combined with digital signatures or other 
               authentication methods, timestamp verification provides comprehensive file integrity 
               and authenticity assurance over time.
             </p>

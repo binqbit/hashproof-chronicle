@@ -251,45 +251,40 @@
       0 0 40px hsl(var(--primary) / 0.3);
   }
 
-  /* Wallet Adapter Overrides - More Specific */
-  .wallet-adapter-modal-overlay,
-  div[role="dialog"][aria-modal="true"] {
+  /* Wallet Adapter Overrides - Fixed */
+  .wallet-adapter-modal-overlay {
     background: rgba(0, 0, 0, 0.85) !important;
     backdrop-filter: blur(12px) !important;
   }
 
-  .wallet-adapter-modal,
-  .wallet-adapter-modal-wrapper,
-  div[role="dialog"] > div {
+  .wallet-adapter-modal {
     background: hsl(var(--background)) !important;
     border: 2px solid hsl(var(--primary) / 0.4) !important;
     border-radius: 1rem !important;
     box-shadow: 
       0 0 40px hsl(var(--primary) / 0.3),
       0 0 80px hsl(var(--primary) / 0.15),
-      0 0 120px hsl(180 100% 50% / 0.1),
       0 8px 32px rgba(0, 0, 0, 0.5) !important;
     position: relative !important;
   }
 
-  .wallet-adapter-modal::before,
-  div[role="dialog"] > div::before {
-    content: '' !important;
-    position: absolute !important;
-    top: -2px !important;
-    left: -2px !important;
-    right: -2px !important;
-    bottom: -2px !important;
+  .wallet-adapter-modal::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
     background: linear-gradient(135deg, 
       hsl(180 100% 50% / 0.4), 
       hsl(266 83% 58% / 0.3), 
       hsl(280 100% 70% / 0.4), 
       transparent,
       hsl(180 100% 50% / 0.3)
-    ) !important;
-    border-radius: inherit !important;
-    z-index: -1 !important;
-    animation: modalGlow 3s ease-in-out infinite !important;
+    );
+    border-radius: inherit;
+    z-index: -1;
+    animation: modalGlow 3s ease-in-out infinite;
   }
 
   @keyframes modalGlow {
@@ -303,10 +298,7 @@
     }
   }
 
-  .wallet-adapter-modal-title,
-  .wallet-adapter-modal h1,
-  div[role="dialog"] h1,
-  div[role="dialog"] .wallet-adapter-modal-title {
+  .wallet-adapter-modal-title {
     background: linear-gradient(135deg, 
       hsl(180 100% 50%), 
       hsl(200 100% 60%),
@@ -318,7 +310,6 @@
     background-clip: text !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
-    color: transparent !important;
     font-weight: 700 !important;
     font-size: 1.5rem !important;
     text-align: center !important;
@@ -332,11 +323,7 @@
     100% { background-position: 0% 50%; }
   }
 
-  /* Target the "Connect a wallet" text more specifically */
-  .wallet-adapter-modal-wrapper > p,
-  .wallet-adapter-modal-middle > p,
-  div[role="dialog"] p:first-of-type,
-  .wallet-adapter-modal p:not(.wallet-adapter-modal-list p) {
+  .wallet-adapter-modal-wrapper > p:first-of-type {
     background: linear-gradient(135deg, 
       hsl(180 100% 50%), 
       hsl(200 100% 60%),
@@ -348,11 +335,46 @@
     background-clip: text !important;
     -webkit-background-clip: text !important;
     -webkit-text-fill-color: transparent !important;
-    color: transparent !important;
     font-weight: 600 !important;
     text-align: center !important;
     margin-bottom: 1.5rem !important;
     animation: gradientShimmer 3s ease-in-out infinite alternate !important;
+  }
+
+  .wallet-adapter-modal-list .wallet-adapter-button {
+    background: hsl(var(--card)) !important;
+    border: 1px solid hsl(var(--primary) / 0.3) !important;
+    border-radius: 0.75rem !important;
+    color: hsl(var(--foreground)) !important;
+    font-weight: 500 !important;
+    padding: 1rem !important;
+    transition: all 0.3s ease !important;
+    width: 100% !important;
+    box-shadow: 0 0 15px hsl(var(--primary) / 0.1) !important;
+  }
+
+  .wallet-adapter-modal-list .wallet-adapter-button:hover {
+    background: hsl(var(--primary) / 0.1) !important;
+    border-color: hsl(var(--primary) / 0.5) !important;
+    box-shadow: 0 0 25px hsl(var(--primary) / 0.2) !important;
+    transform: translateY(-2px) !important;
+  }
+
+  .wallet-adapter-button-trigger {
+    background: hsl(var(--primary)) !important;
+    border: 1px solid hsl(var(--primary) / 0.5) !important;
+    box-shadow: 
+      0 0 20px hsl(var(--primary) / 0.3),
+      0 4px 15px hsl(var(--primary) / 0.2) !important;
+    transition: all 0.3s ease !important;
+  }
+
+  .wallet-adapter-button-trigger:hover {
+    background: hsl(var(--primary) / 0.9) !important;
+    box-shadow: 
+      0 0 30px hsl(var(--primary) / 0.4),
+      0 6px 20px hsl(var(--primary) / 0.25) !important;
+    transform: translateY(-1px) !important;
   }
 
   /* Subtle animated glow for navigation */

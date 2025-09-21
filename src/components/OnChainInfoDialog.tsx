@@ -225,7 +225,7 @@ export function OnChainInfoDialog({ hash, userHasVoted = false }: OnChainInfoDia
             </div>
           </div>
 
-          <div className="text-xs text-muted-foreground bg-secondary/50 p-3 rounded-lg border border-primary/30 neon-card-subtle shadow-neon">
+          <div className="text-xs text-muted-foreground bg-secondary/50 p-3 rounded-lg border border-primary/20">
             <p className="neon-text">
               <strong className="text-primary">On-Chain Verification:</strong> All accounts shown above exist on the Solana blockchain 
               and can be independently verified using Solana Explorer. The hash account stores the SHA-256 

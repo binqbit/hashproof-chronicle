@@ -71,7 +71,7 @@ export function HowItWorksDialog() {
             </div>
           </div>
           
-          <div className="bg-muted/50 p-4 rounded-lg border border-primary/30 neon-card-subtle">
+          <div className="bg-muted/50 p-4 rounded-lg border border-primary/20">
             <p className="text-sm neon-text">
               <strong className="text-primary">Key Benefit:</strong> Multiple parties can collaborate to preserve important timestamps, 
               creating a shared responsibility model for digital record keeping.
@@ -126,7 +126,7 @@ export function WhyNeededDialog() {
             </div>
           </div>
           
-          <div className="bg-primary/10 p-4 rounded-lg border border-primary/40 neon-card-subtle shadow-neon">
+          <div className="bg-primary/10 p-4 rounded-lg border border-primary/25">
             <p className="text-sm neon-text">
               <strong className="text-primary">The Goal:</strong> Enable anyone to verify that a file existed at a specific time, 
               backed by the security and transparency of blockchain technology.
@@ -196,7 +196,7 @@ export function UseCasesDialog() {
             </div>
           </div>
           
-          <div className="bg-accent/20 p-4 rounded-lg border border-accent/50 neon-card-subtle glow-neon-purple">
+          <div className="bg-accent/20 p-4 rounded-lg border border-accent/30">
             <p className="text-sm neon-text">
               <strong className="text-accent">Enhanced Security:</strong> When combined with digital signatures or other 
               authentication methods, timestamp verification provides comprehensive file integrity 

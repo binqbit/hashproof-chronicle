@@ -186,7 +186,7 @@ export function HashDisplay({
         </div>
 
         {/* Info Message */}
-        <div className="text-xs text-muted-foreground bg-secondary/50 p-3 rounded-lg border border-primary/30 neon-card-subtle">
+        <div className="text-xs text-muted-foreground bg-secondary/50 p-3 rounded-lg border border-primary/20">
           <p className="neon-text">
             <strong className="text-primary">How it works:</strong> Voting locks SOL to keep this timestamp active on Solana. 
             The deposit is fully refundable when you withdraw your vote.

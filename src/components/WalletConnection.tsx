@@ -30,7 +30,7 @@ export function WalletConnection() {
         </div>
         
         {!connected && (
-          <div className="mt-4 flex items-start gap-2 text-xs text-muted-foreground bg-secondary/50 p-3 rounded-lg border border-primary/30 neon-card-subtle">
+          <div className="mt-4 flex items-start gap-2 text-xs text-muted-foreground bg-secondary/50 p-3 rounded-lg border border-primary/20">
             <AlertCircle className="h-4 w-4 shrink-0 mt-0.5 text-primary" />
             <div>
               <p className="font-medium neon-text text-primary">Wallet Required for Full Features</p>

@@ -55,16 +55,17 @@ export function FileTimestamp() {
 
   // Load hash account when hash changes
   useEffect(() => {
-    if (!currentHash) return;
+    const activeClient = client;
+    if (!currentHash || !activeClient) return;
     
     const loadHashAccount = async () => {
       setIsLoading(true);
       try {
-        const account = await client.fetchHashAccount(currentHash);
+        const account = await activeClient.fetchHashAccount(currentHash);
         setHashAccount(account as HashAccount | null);
         
         if (account && publicKey) {
-          const vote = await client.fetchVoteInfo(currentHash, publicKey);
+          const vote = await activeClient.fetchVoteInfo(currentHash, publicKey);
           setVoteInfo(vote as VoteInfo | null);
         }
       } catch (error) {

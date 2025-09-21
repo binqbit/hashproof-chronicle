@@ -6,33 +6,67 @@ import {
   Keypair,
   Connection,
   TransactionSignature,
+  LAMPORTS_PER_SOL,
 } from "@solana/web3.js";
 import { HashTimestamp, HashAccount, VoteInfo } from "../types/hash_timestamp";
 
 // Real program ID from the deployed HashTimestamp program
-export const PROGRAM_ID = new PublicKey('HTSx1VNWNBDGtfwr2nU8gSzhxfFtUxd2nkdFq7SCSZzY');
+export const PROGRAM_ID = new PublicKey("HTSx1VNWNBDGtfwr2nU8gSzhxfFtUxd2nkdFq7SCSZzY");
 
 // Re-export types for convenience
 export type { HashAccount, VoteInfo };
 
 // Must match on-chain layout
 export const HASH_ACCOUNT_SPACE = 8 /*disc*/ + 32 + 8 + 8 + 1 + 7; // 64 bytes
+export const VOTE_ACCOUNT_SPACE = 8 /*disc*/ + 32 + 32 + 8 + 1 + 7; // 88 bytes
+const MIN_BALANCE_BUFFER = 0.002 * LAMPORTS_PER_SOL;
 
-export type HashBytes = Uint8Array | Buffer | number[] | string;
+export type HashBytes = Uint8Array | number[] | string;
+
+const textEncoder = new TextEncoder();
+const HASH_SEED = textEncoder.encode("hash");
+const VOTE_SEED = textEncoder.encode("vote");
 
 export function to32Bytes(input: HashBytes): Uint8Array {
-  let buf: Buffer;
-  if (input instanceof Uint8Array) {
-    buf = Buffer.from(input.buffer, input.byteOffset, input.byteLength);
-  } else if (Buffer.isBuffer(input)) {
-    buf = input;
-  } else if (Array.isArray(input)) {
-    buf = Buffer.from(input);
-  } else {
-    buf = Buffer.from(input, "hex");
+  if (typeof input === "string") {
+    const normalized = input.startsWith("0x") ? input.slice(2) : input;
+    if (normalized.length !== 64) {
+      throw new Error("hash must be exactly 32 bytes");
+    }
+    const bytes = new Uint8Array(32);
+    for (let i = 0; i < 32; i++) {
+      const byte = Number.parseInt(normalized.slice(i * 2, i * 2 + 2), 16);
+      if (Number.isNaN(byte)) {
+        throw new Error("hash contains non-hex characters");
+      }
+      bytes[i] = byte;
+    }
+    return bytes;
   }
-  if (buf.length !== 32) throw new Error("hash must be exactly 32 bytes");
-  return new Uint8Array(buf);
+
+  if (input instanceof Uint8Array) {
+    if (input.length !== 32) {
+      throw new Error("hash must be exactly 32 bytes");
+    }
+    return new Uint8Array(input);
+  }
+
+  if (Array.isArray(input)) {
+    if (input.length !== 32) {
+      throw new Error("hash must be exactly 32 bytes");
+    }
+    const bytes = new Uint8Array(32);
+    for (let i = 0; i < 32; i++) {
+      const value = input[i];
+      if (typeof value !== "number" || value < 0 || value > 255) {
+        throw new Error("hash array must contain byte values");
+      }
+      bytes[i] = value;
+    }
+    return bytes;
+  }
+
+  throw new TypeError("Unsupported hash input type");
 }
 
 export function deriveHashPda(
@@ -41,7 +75,7 @@ export function deriveHashPda(
 ): PublicKey {
   const hashBytes = to32Bytes(hash);
   const [pda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("hash"), Buffer.from(hashBytes)],
+    [HASH_SEED, hashBytes],
     programId
   );
   return pda;
@@ -53,7 +87,7 @@ export function deriveVotePda(
   voter: PublicKey
 ): PublicKey {
   const [pda] = PublicKey.findProgramAddressSync(
-    [Buffer.from("vote"), hashPda.toBuffer(), voter.toBuffer()],
+    [VOTE_SEED, hashPda.toBuffer(), voter.toBuffer()],
     programId
   );
   return pda;
@@ -89,6 +123,39 @@ export class HashTimestampClient {
     const walletPk = payer ? payer.publicKey : provider.wallet.publicKey;
     const hashPda = this.hashPda(hashBytes);
     const votePda = this.votePda(hashPda, walletPk);
+
+    if (!payer) {
+      const connection = provider.connection;
+      const [hashAccountInfo, voteAccountInfo] = await Promise.all([
+        connection.getAccountInfo(hashPda),
+        connection.getAccountInfo(votePda),
+      ]);
+
+      let requiredLamports = MIN_BALANCE_BUFFER;
+      if (!hashAccountInfo) {
+        requiredLamports += await connection.getMinimumBalanceForRentExemption(
+          HASH_ACCOUNT_SPACE
+        );
+      }
+      if (!voteAccountInfo) {
+        requiredLamports += await connection.getMinimumBalanceForRentExemption(
+          VOTE_ACCOUNT_SPACE
+        );
+      }
+
+      const balance = await connection.getBalance(walletPk);
+      if (balance < requiredLamports) {
+        const requiredSol = requiredLamports / LAMPORTS_PER_SOL;
+        const shortfallSol = (requiredLamports - balance) / LAMPORTS_PER_SOL;
+        throw new Error(
+          'Insufficient SOL to create timestamp accounts. Need at least ' +
+            requiredSol.toFixed(3) +
+            ' SOL (short ' +
+            shortfallSol.toFixed(3) +
+            ' SOL). Use a devnet faucet to top up your wallet.'
+        );
+      }
+    }
 
     const builder = this.program.methods.vote([...hashBytes]).accountsStrict({
       hashAccount: hashPda,

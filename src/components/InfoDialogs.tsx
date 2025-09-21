@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { HelpCircle, Target, Lightbulb } from 'lucide-react';
+import { HelpCircle, Target, Lightbulb, Code } from 'lucide-react';
 
 interface InfoDialogProps {
   children: React.ReactNode;
@@ -214,12 +214,79 @@ export function UseCasesDialog() {
   );
 }
 
+export function DeveloperResourcesDialog() {
+  return (
+    <InfoDialog 
+      title="Developer Resources"
+      content={
+        <div className="space-y-4">
+          <p className="text-muted-foreground">
+            Want to integrate hash timestamping into your own application? Use our open-source smart contract
+            to implement the same functionality on your website or API.
+          </p>
+          
+          <div className="space-y-3">
+            <div>
+              <h4 className="font-semibold mb-2">🔗 Smart Contract Integration</h4>
+              <p className="text-sm text-muted-foreground">
+                Our Hash Timestamp service is powered by a Solana smart contract that you can integrate 
+                into your own applications. Perfect for adding document verification to existing systems.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-2">📖 Documentation & Examples</h4>
+              <p className="text-sm text-muted-foreground">
+                The GitHub repository includes complete documentation, code examples, and integration guides 
+                to help you implement hash timestamping in your projects.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold mb-2">🛠️ API Development</h4>
+              <p className="text-sm text-muted-foreground">
+                Build your own APIs for document verification, download systems with hash validation, 
+                or any application that needs blockchain-based timestamp proof.
+              </p>
+            </div>
+          </div>
+          
+          <div className="bg-primary/10 p-4 rounded-lg border border-primary/25">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="font-semibold text-primary mb-1">Hash Timestamp Smart Contract</p>
+                <p className="text-sm text-muted-foreground">
+                  Open source Solana program for hash timestamping
+                </p>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => window.open('https://github.com/binqbit/hash-timestamp', '_blank')}
+                className="shrink-0"
+              >
+                View on GitHub
+              </Button>
+            </div>
+          </div>
+        </div>
+      }
+    >
+      <Button variant="outline" size="sm">
+        <Code className="h-4 w-4 mr-2" />
+        Developers
+      </Button>
+    </InfoDialog>
+  );
+}
+
 export function InfoButtons() {
   return (
     <div className="flex flex-wrap gap-2 justify-center">
       <HowItWorksDialog />
       <WhyNeededDialog />
       <UseCasesDialog />
+      <DeveloperResourcesDialog />
     </div>
   );
 }

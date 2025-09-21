@@ -81,15 +81,13 @@ export function HashDisplay({
             <Shield className="h-5 w-5 text-primary" />
             File Timestamp Record
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
+          <button
             onClick={copyLinkToClipboard}
-            className="text-xs"
+            className="text-xs text-muted-foreground hover:text-primary transition-colors flex items-center gap-1 underline-offset-4 hover:underline"
           >
-            <LinkIcon className="h-4 w-4 mr-1" />
+            <LinkIcon className="h-3 w-3" />
             Copy Link
-          </Button>
+          </button>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">

@@ -14,6 +14,7 @@ import { createProgram } from '@/lib/anchorSetup';
 import { hexToHash, hashToHex } from '@/lib/crypto';
 import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/hero-blockchain.jpg';
+import { InfoButtons } from './InfoDialogs';
 
 export function FileTimestamp() {
   const { connection } = useConnection();
@@ -247,6 +248,11 @@ export function FileTimestamp() {
         {/* Wallet Connection */}
         <div className="mb-8">
           <WalletConnection />
+        </div>
+
+        {/* Information Buttons */}
+        <div className="mb-8">
+          <InfoButtons />
         </div>
 
         <div className="grid gap-8 lg:grid-cols-2">

@@ -53,7 +53,10 @@
     /* Glows and effects */
     --glow-primary: 0 0 30px hsl(var(--primary) / 0.3);
     --glow-success: 0 0 20px hsl(var(--success) / 0.4);
+    --glow-neon-blue: 0 0 40px hsl(200 100% 60% / 0.4);
+    --glow-neon-purple: 0 0 35px hsl(280 100% 70% / 0.3);
     --shadow-card: 0 8px 32px hsl(240 10% 3.9% / 0.8);
+    --shadow-neon: 0 0 50px hsl(var(--primary) / 0.2), 0 0 100px hsl(var(--primary) / 0.1);
 
     /* Animation timings */
     --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -94,6 +97,18 @@
     box-shadow: var(--glow-success);
   }
 
+  .glow-neon-blue {
+    box-shadow: var(--glow-neon-blue);
+  }
+
+  .glow-neon-purple {
+    box-shadow: var(--glow-neon-purple);
+  }
+
+  .shadow-neon {
+    box-shadow: var(--shadow-neon);
+  }
+
   /* Animations */
   .transition-smooth {
     transition: var(--transition-smooth);
@@ -116,5 +131,55 @@
 
   .file-upload-area.drag-over {
     @apply border-primary bg-primary/5;
+  }
+
+  /* Neon overflow effects */
+  .neon-overflow::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, 
+      transparent, 
+      hsl(200 100% 60% / 0.3), 
+      transparent, 
+      hsl(280 100% 70% / 0.3), 
+      transparent
+    );
+    border-radius: inherit;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+  }
+
+  .neon-overflow:hover::before {
+    opacity: 1;
+  }
+
+  /* Subtle animated glow for navigation */
+  .nav-glow {
+    position: relative;
+  }
+
+  .nav-glow::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -50%;
+    width: 200%;
+    height: 1px;
+    background: linear-gradient(90deg, 
+      transparent, 
+      hsl(var(--primary) / 0.3), 
+      transparent
+    );
+    animation: slideGlow 3s ease-in-out infinite;
+  }
+
+  @keyframes slideGlow {
+    0%, 100% { transform: translateX(-100%); opacity: 0; }
+    50% { transform: translateX(0); opacity: 1; }
   }
 }

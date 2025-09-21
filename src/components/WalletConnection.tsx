@@ -14,7 +14,7 @@ export function WalletConnection() {
           <div className="flex items-center gap-3">
             <Wallet className="h-5 w-5 text-primary" />
             <div>
-              <h3 className="font-semibold neon-text">Solana Wallet</h3>
+              <h3 className="font-semibold solana-gradient">Solana Wallet</h3>
               {connected ? (
                 <p className="text-sm text-muted-foreground">
                   <span className="text-primary font-mono neon-text">{publicKey?.toBase58().slice(0, 8)}...{publicKey?.toBase58().slice(-8)}</span>

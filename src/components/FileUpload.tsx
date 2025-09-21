@@ -63,7 +63,7 @@ export function FileUpload({ onHashGenerated }: FileUploadProps) {
               <>
                 <Hash className="h-12 w-12 text-primary animate-spin" />
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold">Generating Hash</h3>
+                  <h3 className="text-lg font-semibold solana-gradient">Generating Hash</h3>
                   <p className="text-muted-foreground">Computing SHA-256 fingerprint...</p>
                 </div>
               </>
@@ -71,7 +71,7 @@ export function FileUpload({ onHashGenerated }: FileUploadProps) {
               <>
                 <Upload className="h-12 w-12 text-primary" />
                 <div className="text-center">
-                  <h3 className="text-lg font-semibold">Upload File to Timestamp</h3>
+                  <h3 className="text-lg font-semibold solana-gradient">Upload File to Timestamp</h3>
                   <p className="text-muted-foreground mb-4">
                     Files are hashed locally - they never leave your device
                   </p>

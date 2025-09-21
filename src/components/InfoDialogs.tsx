@@ -19,7 +19,7 @@ function InfoDialog({ children, title, content }: InfoDialogProps) {
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-xl font-bold">{title}</DialogTitle>
+          <DialogTitle className="text-xl font-bold solana-gradient">{title}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           {content}

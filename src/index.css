@@ -183,7 +183,10 @@
   }
 
   .neon-card-subtle {
-    box-shadow: 0 0 25px hsl(var(--primary) / 0.2), 0 0 50px hsl(var(--primary) / 0.1);
+    box-shadow: 
+      0 0 25px hsl(var(--primary) / 0.2), 
+      0 0 50px hsl(var(--primary) / 0.1),
+      0 4px 15px hsl(var(--primary) / 0.15);
     border: 1px solid hsl(var(--primary) / 0.4);
     position: relative;
   }
@@ -204,6 +207,21 @@
     border-radius: inherit;
     z-index: -1;
     opacity: 0.7;
+  }
+
+  /* Solana-style gradient text */
+  .solana-gradient {
+    background: linear-gradient(135deg, 
+      hsl(180 100% 50%), /* turquoise */
+      hsl(266 83% 58%), /* primary purple */
+      hsl(280 100% 70%) /* lighter purple */
+    );
+    background-clip: text;
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 
+      0 0 20px hsl(180 100% 50% / 0.3),
+      0 0 40px hsl(266 83% 58% / 0.2);
   }
 
   /* Neon text effects */

@@ -259,9 +259,9 @@ export function FileTimestamp() {
         <img 
           src={cryptoBg} 
           alt="Cryptographic security and hashing visualization"
-          className="w-full h-full object-cover opacity-30"
+          className="w-full h-full object-cover opacity-60"
         />
-        <div className="absolute inset-0 bg-gradient-to-br from-background/70 via-background/85 to-background/95"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-background/40 via-background/70 to-background/90"></div>
         
         {/* Additional subtle overlay patterns */}
         <div className="absolute inset-0 opacity-10">
@@ -390,3 +390,4 @@ export function FileTimestamp() {
     </div>
   );
 }
+

@@ -24,7 +24,7 @@ function InfoDialog({ children, title, content }: InfoDialogProps) {
         <div className="space-y-4">
           {content}
           <div className="flex justify-end pt-4">
-            <Button onClick={() => setOpen(false)} variant="default">
+            <Button onClick={() => setOpen(false)} variant="default" className="px-8">
               OK
             </Button>
           </div>

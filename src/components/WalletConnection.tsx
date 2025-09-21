@@ -14,10 +14,10 @@ export function WalletConnection() {
           <div className="flex items-center gap-3">
             <Wallet className="h-5 w-5 text-primary" />
             <div>
-              <h3 className="font-semibold">Solana Wallet</h3>
+              <h3 className="font-semibold neon-text">Solana Wallet</h3>
               {connected ? (
                 <p className="text-sm text-muted-foreground">
-                  {publicKey?.toBase58().slice(0, 8)}...{publicKey?.toBase58().slice(-8)}
+                  <span className="text-primary font-mono neon-text">{publicKey?.toBase58().slice(0, 8)}...{publicKey?.toBase58().slice(-8)}</span>
                 </p>
               ) : (
                 <p className="text-sm text-muted-foreground">
@@ -26,7 +26,7 @@ export function WalletConnection() {
               )}
             </div>
           </div>
-          <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !h-10" />
+          <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !h-10 shadow-neon !border !border-primary/50 hover:!shadow-xl transition-all duration-300" />
         </div>
         
         {!connected && (

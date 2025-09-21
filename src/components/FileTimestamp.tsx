@@ -283,10 +283,10 @@ export function FileTimestamp() {
       <div className="relative z-10 container mx-auto px-4 py-8 max-w-4xl">
         {/* Compact Description */}
         <div className="text-center mb-8">
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto neon-text">
             Prove your file existed at a specific moment in time using Solana blockchain.
             <br />
-            <span className="text-primary font-medium">Files are hashed locally - they never leave your device.</span>
+            <span className="text-primary font-medium neon-text-strong">Files are hashed locally - they never leave your device.</span>
           </p>
         </div>
 
@@ -300,8 +300,8 @@ export function FileTimestamp() {
             <Card className="gradient-card shadow-card neon-card-subtle">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Search className="h-5 w-5 text-primary" />
-                  Lookup Existing Hash
+                  <Search className="h-5 w-5 text-primary glow-primary" />
+                  <span className="neon-text">Lookup Existing Hash</span>
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -362,29 +362,29 @@ export function FileTimestamp() {
         {/* How It Works */}
         <Card className="mt-8 gradient-card shadow-card neon-card-subtle">
           <CardHeader>
-            <CardTitle>How File Timestamp Works</CardTitle>
+            <CardTitle className="neon-text">How File Timestamp Works</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="grid gap-4 md:grid-cols-3">
               <div className="text-center">
-                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 font-bold">
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 font-bold shadow-neon">
                   1
                 </div>
-                <h4 className="font-semibold mb-1">Hash Locally</h4>
+                <h4 className="font-semibold mb-1 neon-text">Hash Locally</h4>
                 <p className="text-sm text-muted-foreground">Files are hashed using SHA-256 in your browser</p>
               </div>
               <div className="text-center">
-                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 font-bold">
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 font-bold shadow-neon">
                   2
                 </div>
-                <h4 className="font-semibold mb-1">Vote & Timestamp</h4>
+                <h4 className="font-semibold mb-1 neon-text">Vote & Timestamp</h4>
                 <p className="text-sm text-muted-foreground">Lock SOL to timestamp the hash on Solana blockchain</p>
               </div>
               <div className="text-center">
-                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 font-bold">
+                <div className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center mx-auto mb-2 font-bold shadow-neon">
                   3
                 </div>
-                <h4 className="font-semibold mb-1">Prove & Verify</h4>
+                <h4 className="font-semibold mb-1 neon-text">Prove & Verify</h4>
                 <p className="text-sm text-muted-foreground">Anyone can verify the timestamp exists on-chain</p>
               </div>
             </div>

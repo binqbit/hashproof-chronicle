@@ -15,7 +15,7 @@ export function Navigation() {
                 className="w-8 h-8 text-primary glow-primary" 
                 strokeWidth={2}
               />
-              <h1 className="text-2xl font-bold bg-gradient-to-r from-primary to-primary-glow bg-clip-text text-transparent drop-shadow-lg">
+              <h1 className="text-2xl font-bold neon-title drop-shadow-lg">
                 File Timestamp
               </h1>
             </div>

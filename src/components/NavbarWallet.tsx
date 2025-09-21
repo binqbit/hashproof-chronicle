@@ -8,11 +8,11 @@ export function NavbarWallet() {
   return (
     <div className="flex items-center gap-4">
       {connected && publicKey && (
-        <div className="hidden sm:block text-sm text-muted-foreground">
-          {publicKey.toBase58().slice(0, 4)}...{publicKey.toBase58().slice(-4)}
+        <div className="hidden sm:block text-sm neon-text font-mono">
+          {publicKey.toBase58().slice(0, 6)}...{publicKey.toBase58().slice(-4)}
         </div>
       )}
-      <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !h-9 !text-sm !px-4" />
+      <WalletMultiButton className="!bg-primary hover:!bg-primary/90 !h-9 !text-sm !px-4 shadow-neon !border !border-primary/50 transition-all duration-300" />
     </div>
   );
 }

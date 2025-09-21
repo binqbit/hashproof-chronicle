@@ -254,8 +254,10 @@ export function FileTimestamp() {
       {/* Navigation */}
       <Navigation />
       
-      {/* Crypto Security Background */}
-      <div className="pointer-events-none fixed inset-0 z-0">
+      {/* Main content with top padding to account for fixed navbar */}
+      <div className="pt-20">
+        {/* Crypto Security Background */}
+        <div className="pointer-events-none fixed inset-0 z-0">
         <img 
           src={cryptoBg} 
           alt="Cryptographic security and hashing visualization"
@@ -386,6 +388,7 @@ export function FileTimestamp() {
             </div>
           </CardContent>
         </Card>
+        </div> {/* Close content wrapper div */}
       </div>
     </div>
   );

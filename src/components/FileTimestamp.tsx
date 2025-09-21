@@ -15,6 +15,7 @@ import { createProgram } from '@/lib/anchorSetup';
 import { hexToHash, hashToHex } from '@/lib/crypto';
 import { useToast } from '@/hooks/use-toast';
 import heroImage from '@/assets/hero-blockchain.jpg';
+import cryptoBg from '@/assets/crypto-security-bg.jpg';
 import { Navigation } from './Navigation';
 
 export function FileTimestamp() {
@@ -250,18 +251,25 @@ export function FileTimestamp() {
   };
 
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Navigation */}
       <Navigation />
       
-      {/* Hero Background */}
-      <div className="absolute inset-0 overflow-hidden -z-10">
+      {/* Crypto Security Background */}
+      <div className="fixed inset-0 -z-10">
         <img 
-          src={heroImage} 
-          alt="Blockchain timestamping visualization"
-          className="w-full h-full object-cover opacity-20"
+          src={cryptoBg} 
+          alt="Cryptographic security and hashing visualization"
+          className="w-full h-full object-cover opacity-30"
         />
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-background/70 via-background/85 to-background/95"></div>
+        
+        {/* Additional subtle overlay patterns */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-r from-transparent via-primary/5 to-transparent"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_50%,hsl(var(--primary)/0.1),transparent_50%)]"></div>
+          <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_70%_20%,hsl(var(--accent)/0.1),transparent_50%)]"></div>
+        </div>
       </div>
       
       <div className="relative container mx-auto px-4 py-8 max-w-4xl">

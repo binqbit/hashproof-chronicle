@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as Tooltip from "@radix-ui/react-tooltip";
-import * as Popover from "@radix-ui/react-popover";
+import * as Dialog from "@radix-ui/react-dialog";
 import {
   Background,
   BackgroundVariant,
@@ -13,21 +13,10 @@ import {
   type Node,
   type NodeProps,
 } from "@xyflow/react";
-import {
-  Box,
-  Boxes,
-  Fingerprint,
-  GitBranch,
-  HelpCircle,
-  Maximize,
-  Minus,
-  Plus,
-  Search,
-  Wallet,
-  X,
-} from "lucide-react";
+import { Maximize, Minus, Plus, Search, X } from "lucide-react";
 import { Notice } from "../workspace/fields";
 import { ProofNodeDetails } from "./ProofNodeDetails";
+import { proofNodeIcon } from "./proof-node-display";
 import { nodeKind, type ProofGraph, type ProofGraphNode } from "./proof-graph";
 import {
   NODE_HEIGHT,
@@ -39,13 +28,6 @@ import "@xyflow/react/dist/style.css";
 
 type RecordNode = Node<{ record: ProofGraphNode }, "proof">;
 const short = (value: string) => `${value.slice(0, 7)}…${value.slice(-5)}`;
-const icons = {
-  hash: Fingerprint,
-  branch: GitBranch,
-  batch: Boxes,
-  pack: Box,
-  account: Wallet,
-};
 
 function CircleNode({ data }: NodeProps<RecordNode>) {
   const [opened, setOpened] = useState(false);
@@ -53,7 +35,7 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
   const returningFocus = useRef(false);
   const node = data.record,
     kind = node.record?.source.kind;
-  const Icon = kind ? icons[kind] : HelpCircle;
+  const Icon = proofNodeIcon(kind);
   const incomplete =
     !node.record ||
     (node.record.source.kind === "pack" && node.record.members === undefined) ||
@@ -61,7 +43,7 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
   return (
     <div className="proof-graph-node" data-kind={kind ?? "missing"}>
       <Handle type="target" position={Position.Top} />
-      <Popover.Root open={opened} onOpenChange={setOpened}>
+      <Dialog.Root open={opened} onOpenChange={setOpened}>
         <Tooltip.Root
           open={hovered && !opened}
           onOpenChange={(next) => {
@@ -69,7 +51,7 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
           }}
         >
           <Tooltip.Trigger asChild>
-            <Popover.Trigger asChild>
+            <Dialog.Trigger asChild>
               <button
                 className="proof-node-circle nodrag nopan"
                 type="button"
@@ -93,12 +75,13 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
                   </span>
                 )}
               </button>
-            </Popover.Trigger>
+            </Dialog.Trigger>
           </Tooltip.Trigger>
           <Tooltip.Portal>
             <Tooltip.Content
               className="proof-node-popup proof-node-tooltip"
-              sideOffset={14}
+              side="top"
+              sideOffset={8}
               collisionPadding={12}
               data-testid="proof-node-tooltip"
               onEscapeKeyDown={() => setHovered(false)}
@@ -108,28 +91,30 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
             </Tooltip.Content>
           </Tooltip.Portal>
         </Tooltip.Root>
-        <Popover.Portal>
-          <Popover.Content
-            className="proof-node-popup proof-node-popover"
-            sideOffset={14}
-            collisionPadding={12}
-            aria-label={`${nodeKind(node)} record details`}
+        <Dialog.Portal>
+          <Dialog.Overlay className="proof-record-overlay" />
+          <Dialog.Content
+            className="proof-node-popup proof-node-dialog"
+            aria-describedby={undefined}
             onCloseAutoFocus={() => {
               // Keep Radix's correct focus return, without reopening the tooltip.
               returningFocus.current = true;
               setHovered(false);
             }}
           >
-            <Popover.Close
+            <Dialog.Title className="sr-only">
+              {nodeKind(node)} record details
+            </Dialog.Title>
+            <Dialog.Close
               className="proof-popup-close"
               aria-label="Close record details"
             >
               <X size={18} />
-            </Popover.Close>
+            </Dialog.Close>
             <ProofNodeDetails node={node} />
-          </Popover.Content>
-        </Popover.Portal>
-      </Popover.Root>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
       <strong>{nodeKind(node)}</strong>
       <code>{short(node.id ?? node.pda)}</code>
       <Handle type="source" position={Position.Bottom} />

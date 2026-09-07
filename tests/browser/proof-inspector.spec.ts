@@ -56,8 +56,24 @@ test("draws an interactive proof graph with shared nodes, tooltips and touch det
     await branch.hover();
     const tooltip = page.getByTestId("proof-node-tooltip");
     await expect(tooltip).toBeVisible();
-    await expect(tooltip).toContainText(pdaOf(f.branch));
-    await expect(tooltip).toContainText("1700000001");
+    await expect(tooltip).toContainText(
+      `${pdaOf(f.branch).slice(0, 8)}…${pdaOf(f.branch).slice(-6)}`,
+    );
+    await expect(tooltip).toContainText("14 Nov 2023");
+    await expect(tooltip).toContainText("22:13:21");
+    await expect(tooltip).toContainText("UTC");
+    await expect(tooltip).not.toContainText("1700000001");
+    await expect(tooltip).not.toContainText("Timestamp in seconds");
+    expect(
+      await tooltip.evaluate(
+        (element) =>
+          element.scrollHeight <= element.clientHeight + 1 &&
+          element.scrollWidth <= element.clientWidth + 1,
+      ),
+    ).toBe(true);
+    await tooltip.screenshot({
+      path: testInfo.outputPath("proof-tooltip.png"),
+    });
     expect(await canvas.boundingBox()).toEqual(before);
     expect(await viewport.getAttribute("style")).toBe(transform);
     await page.keyboard.press("Escape");
@@ -71,8 +87,12 @@ test("draws an interactive proof graph with shared nodes, tooltips and touch det
   else await branch.click();
   const details = page.getByRole("dialog", { name: "Branch record details" });
   await expect(details).toBeVisible();
-  await expect(details).toContainText("File / payload hash");
-  await expect(details).toContainText("1700000001");
+  await expect(details).toContainText("Payload hash");
+  await expect(details).toContainText(pdaOf(f.branch));
+  await expect(details).toContainText("14 Nov 2023");
+  await expect(details).toContainText("22:13:21");
+  await expect(details).not.toContainText("1700000001");
+  await expect(details).not.toContainText("Timestamp in seconds");
   await page.screenshot({
     path: testInfo.outputPath("proof-graph.png"),
     fullPage: true,
@@ -104,7 +124,7 @@ test("draws an interactive proof graph with shared nodes, tooltips and touch det
   await page.getByRole("button", { name: "Find record", exact: true }).click();
   await expect(branch).toBeVisible();
 
-  await page.setViewportSize({ width: 320, height: 720 });
+  await page.setViewportSize({ width: 320, height: 568 });
   await page.getByRole("button", { name: "Fit graph", exact: true }).click();
   await canvas.scrollIntoViewIfNeeded();
   if (isMobile) await branch.tap();
@@ -114,7 +134,14 @@ test("draws an interactive proof graph with shared nodes, tooltips and touch det
   expect(popup!.x).toBeGreaterThanOrEqual(0);
   expect(popup!.y).toBeGreaterThanOrEqual(0);
   expect(popup!.x + popup!.width).toBeLessThanOrEqual(320);
-  expect(popup!.y + popup!.height).toBeLessThanOrEqual(720);
+  expect(popup!.y + popup!.height).toBeLessThanOrEqual(568);
+  expect(
+    await details.evaluate(
+      (element) =>
+        element.scrollHeight <= element.clientHeight + 1 &&
+        element.scrollWidth <= element.clientWidth + 1,
+    ),
+  ).toBe(true);
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
@@ -122,6 +149,52 @@ test("draws an interactive proof graph with shared nodes, tooltips and touch det
   ).toBe(true);
   await page.screenshot({
     path: testInfo.outputPath("proof-graph-narrow.png"),
+  });
+  await page.getByRole("button", { name: "Close record details" }).click();
+  if (!isMobile) {
+    await branch.evaluate((element) => element.blur());
+    await branch.focus();
+    const tooltip = page.getByTestId("proof-node-tooltip");
+    await expect(tooltip).toBeVisible();
+    expect(
+      await tooltip.evaluate((element) => {
+        const bounds = element.getBoundingClientRect();
+        return (
+          bounds.x >= 0 &&
+          bounds.y >= 0 &&
+          bounds.right <= innerWidth &&
+          bounds.bottom <= innerHeight &&
+          element.scrollHeight <= element.clientHeight + 1 &&
+          element.scrollWidth <= element.clientWidth + 1
+        );
+      }),
+    ).toBe(true);
+    await tooltip.screenshot({
+      path: testInfo.outputPath("proof-tooltip-narrow.png"),
+    });
+    await page.keyboard.press("Escape");
+  }
+  await page.setViewportSize({ width: 568, height: 320 });
+  await page.getByRole("button", { name: "Fit graph", exact: true }).click();
+  await canvas.scrollIntoViewIfNeeded();
+  if (isMobile) await branch.tap();
+  else await branch.click();
+  await expect(details).toBeVisible();
+  expect(
+    await details.evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      return (
+        bounds.x >= 0 &&
+        bounds.y >= 0 &&
+        bounds.right <= innerWidth &&
+        bounds.bottom <= innerHeight &&
+        element.scrollHeight <= element.clientHeight + 1 &&
+        element.scrollWidth <= element.clientWidth + 1
+      );
+    }),
+  ).toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("proof-graph-landscape.png"),
   });
   await page.getByRole("button", { name: "Close record details" }).click();
   await upload.setInputFiles({

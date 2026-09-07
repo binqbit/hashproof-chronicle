@@ -295,8 +295,11 @@ const content: Record<DocTopicId, ReactNode> = {
         circle with several incoming connections.
       </p>
       <p>
-        Hover or focus a circle to see its identifiers and saved timestamp.
-        Click or tap for full details; close the card with its close button or
+        Hover or focus a circle to see the record type, saved date and time in UTC,
+        shortened record ID and proof account address. Group cards show the number of members
+        when that information is saved.
+        Click or tap for a centred card with full identifiers and record details;
+        close it with its close button or
         Escape. Drag the background to move around, and scroll, pinch or use the
         zoom buttons to change scale. “Fit graph” brings the whole picture back
         into view. To locate a record, enter its address or record ID in the search

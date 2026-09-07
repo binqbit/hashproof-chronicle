@@ -137,15 +137,16 @@ it("formats exact record details and never invents a timestamp for missing nodes
   const { rerender } = render(
     <ProofNodeDetails node={graph.nodes.get(pdaOf(f.branch))!} />,
   );
-  expect(screen.getByText("1700000001")).toBeTruthy();
-  expect(screen.getByText("File / payload hash")).toBeTruthy();
+  expect(screen.getByText("14 Nov 2023")).toBeTruthy();
+  expect(screen.queryByText("1700000001")).toBeNull();
+  expect(screen.getByText("Payload hash")).toBeTruthy();
   expect(screen.getByText(pdaOf(f.branch))).toBeTruthy();
   rerender(
     <ProofNodeDetails
       node={{ pda: pdaOf(f.first), dependencies: [], referencedBy: [] }}
     />,
   );
-  expect(screen.queryByText("Saved timestamp")).toBeNull();
+  expect(screen.queryByText("Recorded time")).toBeNull();
   expect(
     screen.getByText(/contents and timestamp are not in the file/),
   ).toBeTruthy();

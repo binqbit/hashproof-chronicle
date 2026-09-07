@@ -289,11 +289,19 @@ mounted node cards, including on initial fit and **Center graph**; the UI explai
 that the viewport shows only part of the graph and offers pan/search. Smaller
 graphs have **Fit graph** to show the full picture. The graph is read-only (no dragging individual
 nodes, connecting, reconnecting or deleting). A search focuses an exact PDA or
-canonical hex ID; it does not query the network. Hover/focus opens a tooltip and
-click/tap opens full details in a dismissible popover. Both use viewport-aware
-portals, so they do not change page layout. Record details show normalized hex
-hashes/IDs, Base58 addresses and the
-record's own exact timestamp. Missing records never receive a guessed timestamp.
+canonical hex ID; it does not query the network. Hover/focus opens a compact tooltip
+with shortened identifiers. Click/tap opens a centred dialog with full values.
+Both render through portals, without internal scrolling or shifting page layout.
+The card highlights record kind and its saved date/time in UTC, followed by the
+canonical record ID and proof account PDA.
+It does not display raw epoch seconds or graph-reference counters. Dates outside
+the browser's supported calendar range are labelled unavailable; the original
+timestamp stays unchanged in the archive. Missing records never receive a guessed
+timestamp or canonical ID. Details retain normalized hex hashes/IDs and Base58
+addresses: Hash payload, Branch payload/previous ID and generation, group hash and
+known member count, or recorded Account target and snapshot availability. Unknown
+Pack membership is not shown as zero members. Branch's derived stored hash is
+omitted from this summary; it remains in the archive.
 This is a local visualization, not a statement of on-chain existence or readiness
 for Restore. Use **Verify → Proof check** to check a resource file against history.
 
@@ -306,7 +314,8 @@ inspector; opening Docs keeps it mounted. Source files remain unchanged.
 candidate discovery. `proof-graph.ts` owns the presentation graph and components;
 `graph-layout.ts` owns placement via `proof-layout.worker.ts`; the lazy-loaded
 `ProofGraphViewer.tsx` owns canvas interactions, and `ProofNodeDetails.tsx` formats
-record information. `ProofInspectorPanel.tsx` owns file loading and the screen.
+record information with `proof-node-display.ts` (shared icons and UTC date display).
+`ProofInspectorPanel.tsx` owns file loading and the screen.
 Protocol validation remains in the synchronized SDK. Library integration follows
 the [React Flow custom-node documentation](https://reactflow.dev/learn/customization/custom-nodes)
 and [Dagre layout example](https://reactflow.dev/examples/layout/dagre).

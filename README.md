@@ -3,7 +3,8 @@
 A browser workspace for [Hash Timestamp](hash-timestamp/README.md): hash files
 locally, register commitments on Solana, manage votes, create branches and
 batch/pack aggregates, commit account snapshots, check files against saved proofs,
-explore proof trees, merge proof files locally, and restore retained history.
+explore proof trees, combine proof files and select history to export locally,
+and restore retained history.
 
 For a ready-to-import graph with real file digests and all record types, see the
 [proof-chain example](examples/proof-chain/README.md).

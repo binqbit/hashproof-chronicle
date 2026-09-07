@@ -41,7 +41,7 @@ export const workspaceGroups = [
     description: "Proof files & record recovery",
     icon: History,
     tools: [
-      { key: "proofs", label: "Merge proofs", icon: Files },
+      { key: "proofs", label: "Manage proofs", icon: Files },
       { key: "proof-inspector", label: "Proof inspector", icon: Network },
       { key: "restore", label: "Restore", icon: History },
     ],

@@ -34,7 +34,7 @@ const content: Record<DocTopicId, ReactNode> = {
       <p>
         Choose a section, then a tool: <strong>Verify</strong> contains Inspect
         and Proof check; <strong>Create</strong> contains Timestamp, Branch,
-        Batch / Pack and Account; <strong>History</strong> contains Merge proofs,
+        Batch / Pack and Account; <strong>History</strong> contains Manage proofs,
         Proof inspector for exploring connections, and Restore for recovering
         records.
       </p>
@@ -199,7 +199,7 @@ const content: Record<DocTopicId, ReactNode> = {
       <h2>Group records with Batch or Pack</h2>
       <p>
         Open Create → Batch / Pack and choose your saved proof files, including
-        combined files from Merge proofs. All records from the files are
+        combined files from Manage proofs. All records from the files are
         selected automatically, including older linked records. Uncheck any you do not
         want, then use the arrows to set their order. A group can contain at most
         32 records; if more are selected, remove the extras before continuing.
@@ -331,22 +331,34 @@ const content: Record<DocTopicId, ReactNode> = {
       </p>
       <ol>
         <li>
-          <strong>Choose your files.</strong> Open History → Merge proofs and
-          select at least two saved proof files. You can add more in another
-          selection.
+          <strong>Choose your files.</strong> Open History → Manage proofs and
+          open one or more saved proof files. They combine automatically into a
+          graph, with all new records included. You can add more files later;
+          records you already excluded stay excluded.
         </li>
         <li>
-          <strong>Review the list.</strong> Remove any file you do not want to
-          include.
+          <strong>Choose what to keep.</strong> Hover a circle and change “Include
+          in export”. Included records are bright; excluded ones remain dim and
+          can be included again. This does not indicate whether a record exists
+          on the network.
         </li>
         <li>
-          <strong>Merge and check the result.</strong> Click “Merge files”.
-          Repeated records are combined. Conflicting histories cannot be merged.
+          <strong>Select a whole history.</strong> Click a circle for “This record”,
+          “Previous history”, “Continuations” or “Connected history”. Each scope
+          includes the current record. Previous history follows its earlier
+          dependencies and group members; continuations follow records derived
+          from it. Connected history includes every linked branch. Review the
+          highlighted scope and count before including or excluding it. Use
+          “Undo selection” to reverse an action. “Full record details” shows the
+          complete identifiers; “Selection actions” returns to the controls.
         </li>
         <li>
           <strong>Save the combined file.</strong> Read any missing-history
-          warnings, then choose “Download merged JSON”. You can add more history
-          later by merging it with other saved files.
+          warnings, then choose “Download selected proof”. Only included records
+          are saved. “Add needed history” explicitly includes available missing
+          dependencies. You can also confirm saving a partial file and add more
+          history later. Excluding a record never rewrites the links or members
+          of another record.
         </li>
       </ol>
       <GuideNote title="Keep the original proof files too" warning>
@@ -359,7 +371,7 @@ const content: Record<DocTopicId, ReactNode> = {
       <p>
         Download your result before reloading, closing the page or switching
         networks. Opening another tab in the workspace or reading this guide
-        keeps your Merge proofs selection.
+        keeps your Manage proofs selection.
       </p>
       <p>
         You can select up to 32 files, up to 16 MiB each and 32 MiB in total.

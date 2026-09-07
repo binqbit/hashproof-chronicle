@@ -122,7 +122,7 @@ test("groups all tools by task, stays keyboard accessible and fits narrow screen
       [
         "History",
         [
-          ["Merge proofs", "Merge proofs"],
+          ["Manage proofs", "Manage proofs"],
           ["Proof inspector", "Inspect proof history"],
           ["Restore", "Restore historical records"],
         ],

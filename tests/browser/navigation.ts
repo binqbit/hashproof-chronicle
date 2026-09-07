@@ -7,7 +7,7 @@ const sections = {
   Branch: "Create",
   "Batch / Pack": "Create",
   Account: "Create",
-  "Merge proofs": "History",
+  "Manage proofs": "History",
   "Proof inspector": "History",
   Restore: "History",
 } as const;

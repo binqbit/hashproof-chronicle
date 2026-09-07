@@ -46,14 +46,14 @@ The workspace has two navigation levels: choose a section, then one of its tools
 | ------- | --------------------------------------- |
 | Verify  | Inspect, Proof check                    |
 | Create  | Timestamp, Branch, Batch / Pack, Account |
-| History | Merge proofs, Proof inspector, Restore  |
+| History | Manage proofs, Proof inspector, Restore  |
 
 **Verify → Inspect** opens by default, including record links and the home link.
 Selecting a different section opens its first tool; clicking the current section
 keeps its selected tool. Inspect actions from other tools also select Verify.
 Both navigation levels are disabled while a transaction is pending. Changing
 tools, within or between sections, keeps the existing form reset/cancellation
-behavior; Merge proofs keeps its file selection and merged result across these changes.
+behavior; Manage proofs keeps its file selection and merged result across these changes.
 The group definitions and tool type live in `src/features/workspace/navigation.ts`;
 `WorkspaceNavigation.tsx` handles presentation, while `Workspace.tsx` owns the
 active tool and operation state. Navigation does not call the contract.
@@ -98,7 +98,7 @@ initiating control without changing the current network or history.
 | Batch / Pack | Import proof files and select/reorder members, or enter IDs and PDAs manually. Check live records before creating the group. Batch stores IDs; Pack needs retained history. |
 | Account      | Commit the current metadata and data of a Solana account. Save the captured snapshot for historical proof use.                                                                                                                          |
 | Restore      | Open an original or combined proof file, select records in the shared graph viewer, check live anchors and required paths, then restore the explicitly selected records. |
-| Merge proofs | Select several JSON archives or legacy proof files, merge matching nodes locally, review missing history, and download one SDK archive. No wallet or RPC required. |
+| Manage proofs | Open one or more proof files, include/exclude records or connected histories in the shared graph, review missing dependencies, and export exactly the selected records. No wallet or RPC required. |
 | Proof inspector | Draw one original or combined proof as a graph of connected records and independent histories. Hover/focus circles for IDs and timestamps; click/tap for full details. Pan, zoom and search locally; no wallet, RPC or transaction required. |
 | Proof check  | Choose proof JSON and a resource file, find saved file timestamps across versions/groups, then optionally check a matching live record or complete historical path. No wallet or transaction required. |
 
@@ -139,7 +139,7 @@ are selected, checking and creation are disabled until the selection is reduced;
 no records are silently excluded. **Clear selection** deselects everything.
 Choosing files again replaces the selection and invalidates its preview;
 failed or superseded reads cannot reuse the old members. Import is local and uses
-the same file/count limits as Merge proofs. Large record lists are paginated; the order
+the same file/count limits as Manage proofs. Large record lists are paginated; the order
 preview shows up to 32 selected records and reordering is disabled above that limit.
 Legacy exports must match the selected program/RPC; archives and plain arrays do
 not identify a network, so choose their original network yourself. Selected file
@@ -170,7 +170,7 @@ Collection follows live ancestors or imported historical entries. It validates
 derived commitments with SDK helpers and stops if history is unavailable. A Pack
 cannot reveal its missing member list. An account's present state cannot replace
 a changed historical snapshot. Large or incomplete histories may need to be
-assembled with [Merge proofs](#merge-proof-files) or the SDK.
+assembled with [Manage proofs](#merge-proof-files) or the SDK.
 
 Confirmed transaction receipts survive auxiliary proof-collection failures. When
 possible, a partial history export retains captured parent/member fingerprints;
@@ -192,7 +192,7 @@ used by reviewing the JSON and explicitly selecting/importing the intended array
 ### Graphical Restore
 
 Restore accepts files only; there is no JSON text editor. Import uses the same
-archive reader as Merge proofs, including legacy program/RPC checks. Opening a
+archive reader as Manage proofs, including legacy program/RPC checks. Opening a
 file parses its history locally and displays the shared proof graph, then checks
 saved addresses on the selected network without signing. A conflict with session history shows a warning
 but does not prevent working with an otherwise valid imported archive.
@@ -357,8 +357,9 @@ record information with `proof-node-display.ts` (shared icons and UTC date displ
 `ProofInspectorPanel.tsx` owns file loading and the screen.
 Restore reuses this viewer through `RestoreGraphContext.tsx`, with selection and
 checked-plan highlighting kept separate from graph identity and layout.
-`RestoreNodePreview.tsx` provides a non-modal interactive hover preview and the
-shared checkbox used in the details dialog. `RestorePanel.tsx` owns file import,
+`ProofNodePreview.tsx` provides the shared non-modal interactive hover surface;
+`RestoreNodeControl.tsx` supplies Restore's checkbox in that preview and the details
+dialog. `RestorePanel.tsx` owns file import,
 selection and stale-check invalidation. `restore-anchors.ts` uses the SDK's strict
 record reader, and `use-restore-anchors.ts` owns the cancellable file/network-scoped
 snapshot. `restore-paths.ts` finds shortest paths with a multi-source breadth-first
@@ -375,12 +376,39 @@ and [Dagre layout example](https://reactflow.dev/examples/layout/dagre).
 
 ## Merge proof files
 
-Open **History → Merge proofs**, select two or more JSON files, and click **Merge files**. Further
-selections append files to the list; individual files can be removed. Download
-the result with **Download merged JSON**. Changing the selection invalidates the
-previous result. Clearing the selection cancels an active merge. Switching
-operation tabs or opening Docs preserves the selection/result; reloading or
-switching networks clears them. Source files are never modified.
+Open **History → Manage proofs** and choose one or more files. They are read and
+combined automatically into the shared graph. New records start included; existing
+exclusions survive overlapping imports, including witness enrichment. A reference-only
+placeholder becomes included when its actual record arrives. Source files can be
+removed in **Source files**. A failed import leaves the previous graph, accepted files
+and selection intact. **Cancel & clear** aborts loading and clears the session.
+Switching operation tabs or opening Docs preserves the session; reloading or switching
+networks clears it. Source files are never modified.
+
+Included nodes and links between them are bright. Excluded records stay dim and
+interactive, without rebuilding the layout. Hover for **Include in export** or open
+the record card for scope actions. Its **Full record details** view shows unshortened
+identifiers without crowding the selection controls. **This record** affects one record; **Previous
+history** includes it and its transitive dependencies; **Continuations** includes
+it and records derived from it; **Connected history** traverses both directions.
+Scopes follow links, not timestamps, include shared branches, and show an amber
+preview/count before applying Include/Exclude. Missing placeholders may connect
+histories but cannot themselves be selected without record data.
+
+**Include all**, **Exclude all**, and **Undo selection** operate on inclusion only.
+Undo retains the latest 20 selection changes and resets after accepted source-file
+changes. No-op selections do not consume undo history. **Add needed history (+N)**
+explicitly includes available dependencies; it cannot invent missing nodes or snapshots.
+**Download selected proof** exports exactly the included records. Empty selections
+cannot be downloaded. Partial exports require confirmation and report missing
+references or supporting data. Omitted middle nodes are not bypassed; stored hashes,
+timestamps, ordered Batch/Pack membership and snapshots remain unchanged.
+
+`ManageProofsPanel.tsx` composes file controls, export review and the shared viewer.
+`use-proof-manager.ts` owns atomic/cancellable import and bounded selection undo;
+`proof-selection.ts` owns graph scopes and SDK-backed exact export.
+`ProofSelectionContext.tsx` and `ExportNodeControl.tsx` supply offline selection
+interactions independently of Restore. No UI selection flags enter archive JSON.
 
 The tab accepts SDK `hash-timestamp-archive` v1 files, legacy
 `hash-timestamp-proof-v1` exports, and SDK-shaped proof arrays. Legacy exports
@@ -393,8 +421,8 @@ with the filename, not silently stripped of their proof data.
 SDK validation owns merging: identical historical nodes deduplicate, missing
 witnesses may be enriched, and member order is preserved. Different program IDs,
 conflicting timestamps/incarnations or witnesses, malformed JSON and invalid
-commitments reject the entire merge. No conflicting record is overwritten and
-no partial-success download is offered. Partial SDK archives are allowed: the UI
+commitments reject the incoming file change. No conflicting record is overwritten;
+the previous accepted session remains usable. Partial SDK archives are allowed: the UI
 reports missing references/witnesses, and the output can be merged with more
 history later. Local checks do not verify live anchors or on-chain existence.
 
@@ -462,7 +490,7 @@ return `{ signature, archive }`. The SDK's versioned node graph and automatic
 restore planner are documented in the [archive guide](../hash-timestamp/docs/archive.md).
 Retained-history and creation receipts export collected legacy proofs; a creation's
 one-node SDK archive must not replace that full history. Archive Restore receipts
-download the complete SDK archive from the confirmed steps. Merge proofs and
+download the complete SDK archive from the confirmed steps. Manage proofs and
 Restore accept both file formats. A confirmed `ArchiveCaptureError` keeps
 the transaction receipt visible with a warning; uncertain submissions retain the
 signature in the error and must be checked before retrying.

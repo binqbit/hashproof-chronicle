@@ -35,7 +35,14 @@ import {
   useRestoreGraph,
   type RestoreGraphInteraction,
 } from "./RestoreGraphContext";
-import { RestoreNodeControl, RestoreNodePreview } from "./RestoreNodePreview";
+import { RestoreNodeControl } from "./RestoreNodeControl";
+import { ProofNodePreview } from "./ProofNodePreview";
+import { ExportNodeControl, ExportRecordDetails } from "./ExportNodeControl";
+import {
+  ProofSelectionContext,
+  useProofSelection,
+  type ProofSelectionInteraction,
+} from "./ProofSelectionContext";
 import {
   NODE_HEIGHT,
   NODE_WIDTH,
@@ -49,6 +56,7 @@ const short = (value: string) => `${value.slice(0, 7)}…${value.slice(-5)}`;
 
 function CircleNode({ data }: NodeProps<RecordNode>) {
   const restore = useRestoreGraph();
+  const selection = useProofSelection();
   const [opened, setOpened] = useState(false);
   const [hovered, setHovered] = useState(false);
   const returningFocus = useRef(false);
@@ -74,6 +82,11 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
         }}
       >
         <Icon size={27} aria-hidden="true" />
+        {selection?.included.has(node.pda) && (
+          <span className="proof-export-badge" aria-label="Included in export">
+            <Check size={17} />
+          </span>
+        )}
         {incomplete && (
           <span
             className="proof-node-warning"
@@ -109,13 +122,31 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
       data-restore-anchor={restore?.anchors.has(node.pda) || undefined}
       data-restore-required={restore?.required.has(node.pda) || undefined}
       data-restore-proof={restore?.proofNodes.has(node.pda) || undefined}
+      data-export-included={
+        selection ? selection.included.has(node.pda) : undefined
+      }
+      data-export-preview={selection?.preview?.has(node.pda) || undefined}
     >
       <Handle type="target" position={Position.Top} />
       <Dialog.Root open={opened} onOpenChange={setOpened}>
-        {restore ? (
-          <RestoreNodePreview node={node} detailsOpen={opened}>
+        {restore || selection ? (
+          <ProofNodePreview
+            node={node}
+            detailsOpen={opened}
+            label={restore ? "Restore record preview" : "Export record preview"}
+            controls={
+              restore ? (
+                <RestoreNodeControl node={node} />
+              ) : (
+                <ExportNodeControl
+                  node={node}
+                  onOpenActions={() => setOpened(true)}
+                />
+              )
+            }
+          >
             {trigger}
-          </RestoreNodePreview>
+          </ProofNodePreview>
         ) : (
           <Tooltip.Root
             open={hovered && !opened}
@@ -144,6 +175,8 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
           <Dialog.Content
             className="proof-node-popup proof-node-dialog"
             data-restore={Boolean(restore) || undefined}
+            data-export={Boolean(selection) || undefined}
+            data-interactive={Boolean(restore || selection) || undefined}
             aria-describedby={undefined}
             onCloseAutoFocus={() => {
               // Keep Radix's correct focus return, without reopening the tooltip.
@@ -160,8 +193,14 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
             >
               <X size={18} />
             </Dialog.Close>
-            <ProofNodeDetails node={node} />
-            <RestoreNodeControl node={node} />
+            {selection ? (
+              <ExportRecordDetails node={node} />
+            ) : (
+              <>
+                <ProofNodeDetails node={node} />
+                <RestoreNodeControl node={node} />
+              </>
+            )}
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
@@ -281,10 +320,12 @@ function GraphCanvas({
   graph,
   layout,
   restore,
+  selection,
 }: {
   graph: ProofGraph;
   layout: GraphLayout;
   restore?: RestoreGraphInteraction;
+  selection?: ProofSelectionInteraction;
 }) {
   const large = graph.nodes.size > 250;
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -327,7 +368,12 @@ function GraphCanvas({
           ? restore.proofEdges.has(graphEdgeId(edge.source, edge.target))
             ? "proof-edge-active"
             : "proof-edge-muted"
-          : undefined,
+          : selection
+            ? selection.included.has(edge.source) &&
+              selection.included.has(edge.target)
+              ? "proof-edge-active"
+              : "proof-edge-muted"
+            : undefined,
         source: edge.source,
         target: edge.target,
         type: "default",
@@ -342,13 +388,18 @@ function GraphCanvas({
             ? restore.proofEdges.has(graphEdgeId(edge.source, edge.target))
               ? "#67e8cd"
               : "#716985"
-            : "#d7c8ff",
+            : selection
+              ? selection.included.has(edge.source) &&
+                selection.included.has(edge.target)
+                ? "#67e8cd"
+                : "#716985"
+              : "#d7c8ff",
         },
         focusable: false,
         selectable: false,
         ariaLabel: `${edge.source} to ${edge.target}${edge.member ? `, member ${edge.member}` : ", previous record"}`,
       })),
-    [graph, restore],
+    [graph, restore, selection],
   );
   const bounds = useMemo(() => getNodesBounds(nodes), [nodes]);
   const overview = useGraphOverview(canvasRef, bounds);
@@ -444,13 +495,26 @@ function GraphCanvas({
           </span>
         </div>
       )}
+      {selection && (
+        <div
+          className="proof-graph-legend proof-export-legend"
+          aria-label="Export graph legend"
+        >
+          <span>
+            <Check size={14} /> Included in export
+          </span>
+          <span>Dimmed: excluded</span>
+          <span>Amber outline: action preview</span>
+        </div>
+      )}
       <p className="fine-print">
         Drag the background or hold the mouse wheel to pan; scroll or pinch to
-        zoom. Fit graph shows the full history; zoom-out stops at that overview.
-        {" "}
-        {restore
-          ? "Hover for restore selection; click, tap or press Enter on a circle for full details."
-          : "Hover or focus a circle for a preview; click or tap for full details."}{" "}
+        zoom. Fit graph shows the full history; zoom-out stops at that overview.{" "}
+        {selection
+          ? "Hover to include a record; click or tap for history selection actions."
+          : restore
+            ? "Hover for restore selection; click, tap or press Enter on a circle for full details."
+            : "Hover or focus a circle for a preview; click or tap for full details."}{" "}
         Arrows point to earlier records or group members; numbers show member
         order.
       </p>
@@ -461,9 +525,11 @@ function GraphCanvas({
 export default function ProofGraphViewer({
   graph,
   restore,
+  selection,
 }: {
   graph: ProofGraph;
   restore?: RestoreGraphInteraction;
+  selection?: ProofSelectionInteraction;
 }) {
   const [layout, setLayout] = useState<GraphLayout>();
   const [error, setError] = useState("");
@@ -519,7 +585,14 @@ export default function ProofGraphViewer({
   if (!layout) return <p role="status">Arranging proof graph…</p>;
   return (
     <RestoreGraphContext.Provider value={restore}>
-      <GraphCanvas graph={graph} layout={layout} restore={restore} />
+      <ProofSelectionContext.Provider value={selection}>
+        <GraphCanvas
+          graph={graph}
+          layout={layout}
+          restore={restore}
+          selection={selection}
+        />
+      </ProofSelectionContext.Provider>
     </RestoreGraphContext.Provider>
   );
 }

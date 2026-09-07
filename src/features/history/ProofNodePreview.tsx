@@ -1,67 +1,21 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import * as Popover from "@radix-ui/react-popover";
-import { Anchor, Check } from "lucide-react";
 import { ProofNodeDetails } from "./ProofNodeDetails";
-import { useRestoreGraph } from "./RestoreGraphContext";
 import type { ProofGraphNode } from "./proof-graph";
 
-export function RestoreNodeControl({ node }: { node: ProofGraphNode }) {
-  const state = useRestoreGraph();
-  if (!state) return null;
-  const live = state.records?.get(node.pda);
-  const exists =
-    state.present.has(node.pda) ||
-    state.anchors.has(node.pda) ||
-    live?.kind === "conflict";
-  const message = !node.record
-    ? "Record data is missing from this file."
-    : state.anchors.has(node.pda)
-      ? "Live anchor · matches this saved history"
-      : live?.kind === "conflict"
-        ? "This address exists with a different historical record."
-        : live?.kind === "error"
-          ? "Could not verify this record. Refresh live records to retry."
-          : state.present.has(node.pda)
-            ? "Already exists · matches this saved history"
-            : state.required.has(node.pda)
-              ? "Required intermediate record · select it to continue"
-              : state.selected.has(node.pda)
-                ? "Selected for restoration"
-                : state.proofNodes.has(node.pda)
-                  ? "On the shortest restore path"
-                  : live?.kind === "missing"
-                    ? "No live record at this address · select it to check a restore path."
-                    : "Select this record, then check its restore path.";
-  return (
-    <div className="proof-restore-control">
-      <p>
-        {state.anchors.has(node.pda) && <Anchor size={14} aria-hidden="true" />}
-        {message}
-      </p>
-      <label className="check proof-restore-check">
-        <input
-          type="checkbox"
-          checked={state.selected.has(node.pda)}
-          disabled={state.disabled || !node.record || exists}
-          onChange={() => state.onToggle(node.pda)}
-          aria-label={`Restore record ${node.pda}`}
-        />
-        <Check size={15} aria-hidden="true" />{" "}
-        {exists ? "Already exists" : "Restore this record"}
-      </label>
-    </div>
-  );
-}
-
 /** A non-modal interactive preview; tooltips/hover cards cannot host accessible inputs. */
-export function RestoreNodePreview({
+export function ProofNodePreview({
   node,
   children,
   detailsOpen,
+  label,
+  controls,
 }: {
   node: ProofGraphNode;
   children: ReactNode;
   detailsOpen: boolean;
+  label: string;
+  controls: ReactNode;
 }) {
   const [open, setOpen] = useState(false);
   const closeTimer = useRef<ReturnType<typeof setTimeout>>();
@@ -88,7 +42,7 @@ export function RestoreNodePreview({
       <Popover.Anchor asChild>
         <span
           ref={anchor}
-          className="proof-restore-trigger"
+          className="proof-interactive-trigger"
           onPointerEnter={(event) => {
             cancelClose();
             if (event.pointerType !== "touch" && !detailsOpen) setOpen(true);
@@ -101,8 +55,8 @@ export function RestoreNodePreview({
       <Popover.Portal>
         <Popover.Content
           ref={content}
-          className="proof-node-popup proof-node-tooltip proof-restore-preview"
-          aria-label="Restore record preview"
+          className="proof-node-popup proof-node-tooltip proof-interactive-preview"
+          aria-label={label}
           side="top"
           sideOffset={8}
           collisionPadding={12}
@@ -123,7 +77,7 @@ export function RestoreNodePreview({
           }}
         >
           <ProofNodeDetails node={node} compact />
-          <RestoreNodeControl node={node} />
+          {controls}
           <Popover.Arrow className="proof-tooltip-arrow" />
         </Popover.Content>
       </Popover.Portal>

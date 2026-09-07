@@ -15,7 +15,7 @@ import { AccountPanel } from "../records/AccountPanel";
 import { AggregatePanel } from "../records/AggregatePanel";
 import { BranchPanel } from "../records/BranchPanel";
 import { RestorePanel } from "../history/RestorePanel";
-import { ProofsPanel } from "../history/ProofsPanel";
+import { ManageProofsPanel } from "../history/ManageProofsPanel";
 import { FileProofPanel } from "../history/FileProofPanel";
 import { ProofInspectorPanel } from "../history/ProofInspectorPanel";
 import { DocsLink } from "../guide/DocsLink";
@@ -225,7 +225,7 @@ function NetworkWorkspace() {
               <RestorePanel {...props} onHistory={retain} />
             )}
             <div hidden={tab !== "proofs"}>
-              <ProofsPanel />
+          <ManageProofsPanel />
             </div>
           </div>
           <aside className="sidebar">

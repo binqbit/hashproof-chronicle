@@ -13,7 +13,7 @@ it("shows where to find each workspace tool in the getting-started guide", () =>
   expect(text).toContain(
     "Create contains Timestamp, Branch, Batch / Pack and Account",
   );
-  expect(text).toContain("History contains Merge proofs, Proof inspector");
+  expect(text).toContain("History contains Manage proofs, Proof inspector");
   expect(text).toContain("Restore for recovering records");
 });
 

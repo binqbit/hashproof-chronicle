@@ -6,6 +6,7 @@ import { PROGRAM_ID, PROGRAM_VERSION } from "../../contract/client";
 import { explorerUrl, useNetwork } from "../../contract/network";
 import {
   deriveGenesisHashId,
+  stringifyArchive,
   type RestoreProofInput,
 } from "../../contract/sdk";
 import { RegisterPanel } from "../records/RegisterPanel";
@@ -291,22 +292,42 @@ function NetworkWorkspace() {
               </a>
             </div>
             <code className="break-anywhere">{receipt.signature}</code>
+            {receipt.signatures && receipt.signatures.length > 1 && (
+              <ol>
+                {receipt.signatures.map((signature, index) => (
+                  <li key={signature}>
+                    <a
+                      href={explorerUrl(network, "tx", signature)}
+                      target="_blank"
+                      rel="noreferrer"
+                    >
+                      Confirmed transaction {index + 1}{" "}
+                      <ExternalLink size={14} />
+                    </a>
+                  </li>
+                ))}
+              </ol>
+            )}
             <div className="actions">
               {receipt.ids.map((id) => (
                 <button key={id} disabled={busy} onClick={() => inspect(id)}>
                   Inspect {id.slice(0, 12)}…
                 </button>
               ))}
-              {receipt.proof && (
+              {(receipt.archive || receipt.proof) && (
                 <button
                   onClick={() =>
                     downloadJson(
                       `proof-${receipt.ids[0]?.slice(0, 12) || "history"}.json`,
-                      proofJson(
-                        receipt.proof!,
-                        PROGRAM_ID.toBase58(),
-                        network.endpoint,
-                      ),
+                      // Planner receipts hold a complete multi-step archive. Creation
+                      // archives hold only the new node: keep their collected proof.
+                      receipt.archive && (receipt.signatures || !receipt.proof)
+                        ? stringifyArchive(receipt.archive)
+                        : proofJson(
+                            receipt.proof!,
+                            PROGRAM_ID.toBase58(),
+                            network.endpoint,
+                          ),
                     )
                   }
                 >

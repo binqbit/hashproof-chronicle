@@ -73,6 +73,95 @@
   stroke-linecap: round;
   stroke-linejoin: round;
 }
+.proof-graph-canvas .proof-edge-muted {
+  opacity: 0.28;
+}
+.proof-graph-canvas .proof-edge-active .react-flow__edge-path {
+  stroke: #67e8cd;
+}
+.proof-graph-canvas .proof-graph-node[data-restore-proof] button.proof-node-circle {
+  border-color: #67e8cd;
+}
+.proof-graph-canvas .proof-graph-node[data-restore-anchor] button.proof-node-circle {
+  outline: 3px solid #67e8cd;
+  outline-offset: 4px;
+}
+.proof-graph-canvas .proof-graph-node[data-restore-required] button.proof-node-circle {
+  outline: 2px dashed #f2bb70;
+  outline-offset: 4px;
+}
+.proof-graph-canvas .proof-graph-node[data-restore-selected] button.proof-node-circle {
+  outline: 3px solid #f09cfa;
+  outline-offset: 4px;
+  background: radial-gradient(circle at 35% 25%, #8a4da8, #342344);
+  box-shadow:
+    0 0 0 8px #f09cfa20,
+    0 0 28px #d77beb55;
+}
+.proof-restore-badge,
+.proof-anchor-badge {
+  position: absolute;
+  bottom: -5px;
+  right: -5px;
+  width: 23px;
+  height: 23px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  color: #23152e;
+  background: #f09cfa;
+  border: 2px solid #201529;
+}
+.proof-anchor-badge {
+  right: auto;
+  left: -5px;
+  background: #67e8cd;
+}
+.proof-restore-trigger {
+  display: inline-flex;
+}
+.proof-restore-control {
+  margin-top: 12px;
+  padding-top: 10px;
+  border-top: 1px solid #a899d344;
+}
+.proof-restore-control p {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  margin: 0 0 8px;
+  color: #cfbddf;
+}
+.proof-restore-control .check {
+  margin: 0;
+  padding: 10px;
+  border-color: #d789e966;
+  background: #bd6fd41a;
+}
+.proof-restore-preview {
+  z-index: 61;
+}
+.proof-restore-legend .restore-selected-key {
+  color: #f09cfa;
+}
+.proof-restore-legend .restore-anchor-key,
+.proof-restore-legend .restore-proof-key {
+  color: #67e8cd;
+}
+.proof-restore-legend .restore-required-key {
+  color: #f2bb70;
+}
+.restore-selection-summary {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+.restore-plan-step + .restore-plan-step {
+  border-top: 1px solid #a899d344;
+  padding-top: 12px;
+}
 .proof-graph-canvas .react-flow__attribution {
   background: #191329cc;
   font-size: 10px;
@@ -538,6 +627,57 @@
   }
   .proof-node-dialog .proof-record-fields {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+/* Keep the selection control and full identifiers visible on short screens. */
+@media (max-height: 700px) {
+  .proof-node-dialog[data-restore] {
+    padding: 12px;
+  }
+  .proof-node-dialog[data-restore] .proof-node-details {
+    gap: 6px;
+  }
+  .proof-node-dialog[data-restore] .proof-record-icon {
+    width: 32px;
+    height: 32px;
+  }
+  .proof-node-dialog[data-restore] h4 {
+    font-size: 14px;
+  }
+  .proof-node-dialog[data-restore] .proof-record-date {
+    padding: 5px 8px;
+  }
+  .proof-node-dialog[data-restore] .proof-record-date time strong {
+    font-size: 15px;
+  }
+  .proof-node-dialog[data-restore] .proof-record-fields {
+    gap: 5px;
+  }
+  .proof-node-dialog[data-restore] .proof-record-field dd {
+    padding: 4px 6px;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .proof-node-dialog[data-restore] .proof-record-source {
+    padding-top: 6px;
+  }
+  .proof-node-dialog[data-restore] .proof-restore-control {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 8px;
+    padding-top: 6px;
+  }
+  .proof-node-dialog[data-restore] .proof-restore-control p {
+    flex: 1;
+    margin: 0;
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .proof-node-dialog[data-restore] .proof-restore-control .check {
+    flex-shrink: 0;
+    padding: 6px;
+    font-size: 11px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

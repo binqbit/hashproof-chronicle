@@ -8,6 +8,8 @@ import {
 import { hex } from "../workspace/values";
 import { archiveLinks } from "./archive-links";
 
+export const graphEdgeId = (source: string, target: string) => `${source}-${target}`;
+
 export interface ProofGraphNode {
   pda: string;
   id?: string;

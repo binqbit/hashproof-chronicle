@@ -27,7 +27,10 @@ async function liveHashData() {
       source: { hash: {} },
       voters: new BN(1),
       createdAt: new BN(1700000000),
-      bump: 1,
+      bump: PublicKey.findProgramAddressSync(
+        [Buffer.from("hash"), Buffer.from(deriveGenesisHashId(payload))],
+        new PublicKey(program),
+      )[1],
     })
   ).toString("base64");
 }
@@ -224,28 +227,9 @@ test("disables empty operation inputs and re-enables checks when data is entered
     ).toBeEnabled();
   }
   await openTool(page, "Restore");
-  await page.getByLabel("Proof chain JSON").fill(" \n ");
-  await expect(
-    page.getByRole("button", { name: "Check format & load history" }),
-  ).toBeDisabled();
-  await page
-    .getByLabel("Proof chain JSON")
-    .fill(
-      JSON.stringify([
-        {
-          hash: payload.toString("hex"),
-          source: { kind: "hash" },
-          createdAt: "100",
-        },
-      ]),
-    );
-  await expect(
-    page.getByRole("button", { name: "Check format & load history" }),
-  ).toBeEnabled();
-  await page.getByLabel("Proof chain JSON").fill("");
-  await expect(
-    page.getByRole("button", { name: "Check format & load history" }),
-  ).toBeDisabled();
+  await expect(page.locator("textarea")).toHaveCount(0);
+  await expect(page.getByLabel("Proof file to restore")).toBeAttached();
+  await expect(page.getByRole("button", { name: /^Restore selected records/ })).toHaveCount(0);
   await expect(page.getByRole("alert")).toHaveCount(0);
 });
 
@@ -575,7 +559,7 @@ test("opens routed documentation and preserves the selected record and draft on 
   await chooseDoc(page, "restore", "History / Restore");
   await expect(
     page.getByText(
-      "record in that proof must still exist on the original network.",
+      "matching record must still exist on that network",
       {
         exact: false,
       },
@@ -658,7 +642,7 @@ test("documentation highlights proof limitations and clearly links to GitHub", a
     page.getByRole("complementary", {
       name: "Keep the original proof files too",
     }),
-  ).toContainText("The merged download cannot be used directly in Restore.");
+  ).toContainText("You can open the combined file in Restore");
   await expect(page.getByRole("article")).not.toContainText(/\bSDK\b|\bRPC\b/);
   await chooseDoc(page, "developers", "Developer resources");
   const repository = page.getByRole("link", {
@@ -699,7 +683,7 @@ test("documentation highlights proof limitations and clearly links to GitHub", a
   });
 });
 
-test("checks restore against a live anchor and invalidates the result on editing", async ({
+test("checks restore against a live anchor and invalidates the result on replacing the file", async ({
   page,
 }, testInfo) => {
   await rpc(page, await liveHashData());
@@ -713,25 +697,26 @@ test("checks restore against a live anchor and invalidates the result on editing
       params: { kind: "hash", payload: payload.toString("hex") },
     },
   ]);
-  await page.getByLabel("Import proof JSON", { exact: true }).setInputFiles({
+  const upload = page.getByLabel("Proof file to restore", { exact: true });
+  await upload.setInputFiles({
     name: "retained-proof.json",
     mimeType: "application/json",
     buffer: Buffer.from(input),
   });
   await expect(
-    page.getByLabel("Proof chain JSON", { exact: true }),
-  ).toHaveValue(input);
-  await expect(
     page.getByText("retained-proof.json", { exact: true }),
   ).toBeVisible();
-  await page
-    .getByRole("button", { name: "Check format & load history" })
-    .click();
-  await page
-    .getByRole("button", { name: "Check proof & live state — no fee" })
-    .click();
+  const expectExistingDisabled = async () => {
+    await page.locator(`button[data-pda="${recordPda()}"]`).click();
+    await page.getByRole("dialog", { name: "Hash record details", exact: true })
+      .getByRole("checkbox", { name: `Restore record ${recordPda()}` }).waitFor();
+    await expect(page.getByRole("dialog", { name: "Hash record details", exact: true })
+      .getByRole("checkbox", { name: `Restore record ${recordPda()}` })).toBeDisabled();
+    await page.getByRole("button", { name: "Close record details" }).click();
+  };
+  await expectExistingDisabled();
   await expect(
-    page.getByText("Preflight checks passed", { exact: true }),
+    page.getByText("1 matching live record(s) found", { exact: true }),
   ).toBeVisible();
   await page.getByRole("link", { name: "Docs & guides", exact: true }).click();
   await page
@@ -739,13 +724,13 @@ test("checks restore against a live anchor and invalidates the result on editing
     .first()
     .click();
   await expect(
-    page.getByLabel("Proof chain JSON", { exact: true }),
-  ).toHaveValue(input);
-  await expect(
-    page.getByText("Preflight checks passed", { exact: true }),
+    page.getByText("retained-proof.json", { exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Validate proof on-chain — fee" }),
+    page.getByText("1 matching live record(s) found", { exact: true }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: /^Restore selected records/ }),
   ).toBeDisabled();
   const network = page.getByRole("combobox", { name: "Network", exact: true });
   await network.click();
@@ -780,7 +765,7 @@ test("checks restore against a live anchor and invalidates the result on editing
   await expect(network).toHaveText("Localnet");
   await expect(network).toBeFocused();
   await expect(
-    page.getByText("Preflight checks passed", { exact: true }),
+    page.getByText("1 matching live record(s) found", { exact: true }),
   ).toBeVisible();
   await network.click();
   await expect(page.getByRole("listbox")).toBeVisible();
@@ -789,12 +774,6 @@ test("checks restore against a live anchor and invalidates the result on editing
   await expect
     .poll(() => page.evaluate(() => getComputedStyle(document.body).overflow))
     .not.toBe("hidden");
-  await page
-    .getByLabel("Proof chain JSON", { exact: true })
-    .fill(input.replace("1700000000", "1700000001"));
-  await expect(
-    page.getByText("Preflight checks passed", { exact: true }),
-  ).toHaveCount(0);
   // Clear only in-memory history before importing another incarnation.
   const clearHistory = page.getByRole("button", {
     name: "Clear retained history",
@@ -819,15 +798,14 @@ test("checks restore against a live anchor and invalidates the result on editing
     .getByRole("button", { name: "Clear history", exact: true })
     .click();
   await expect(clearDialog).toHaveCount(0);
-  await page
-    .getByRole("button", { name: "Check format & load history" })
-    .click();
-  await page
-    .getByRole("button", { name: "Check proof & live state — no fee" })
-    .click();
-  await expect(
-    page.getByText("Preflight found problems", { exact: true }),
-  ).toBeVisible();
+  await upload.setInputFiles({
+    name: "different-incarnation.json", mimeType: "application/json",
+    buffer: Buffer.from(input.replace("1700000000", "1700000001")),
+  });
+  await expect(page.getByLabel("Restore plan")).toHaveCount(0);
+  await expect(page.getByText("0 matching live record(s) found", { exact: true })).toBeVisible();
+  await expectExistingDisabled();
+  await expect(page.getByRole("button", { name: /^Restore selected records/ })).toBeDisabled();
 });
 
 test("remembers the selected wallet across reload and forgets it through the Wallet menu", async ({
@@ -1003,29 +981,28 @@ test("permits offline proof parsing but never confuses it with on-chain verifica
       params: { kind: "hash", payload: payload.toString("hex") },
     },
   ];
-  await page
-    .getByLabel("Proof chain JSON", { exact: true })
-    .fill(JSON.stringify(proof));
-  await page
-    .getByRole("button", { name: "Check format & load history" })
-    .click();
-  await expect(
-    page.getByText("Format checked locally;", { exact: false }),
-  ).toBeVisible();
-  await expect(
-    page.getByRole("button", { name: "Validate proof on-chain — fee" }),
-  ).toBeDisabled();
-  await page.getByLabel("Proof chain JSON", { exact: true }).fill(
-    JSON.stringify({
+  const upload = page.getByLabel("Proof file to restore", { exact: true });
+  await upload.setInputFiles({
+    name: "offline-proof.json", mimeType: "application/json", buffer: Buffer.from(JSON.stringify(proof)),
+  });
+  await page.locator(`button[data-pda="${recordPda()}"]`).click();
+  await page.getByRole("dialog", { name: "Hash record details", exact: true })
+    .getByRole("checkbox", { name: `Restore record ${recordPda()}` }).check();
+  await page.getByRole("button", { name: "Close record details" }).click();
+  await expect(page.getByRole("button", { name: /^Restore selected records/ })).toBeDisabled();
+  await page.getByRole("button", { name: "Check selected records — no fee" }).click();
+  await expect(page.getByRole("region", { name: "Restore historical records", exact: true }).getByRole("alert")).toContainText(/503|RPC unavailable/);
+  await expect(page.getByLabel("Restore plan")).toHaveCount(0);
+  await upload.setInputFiles({
+    name: "other-network.json", mimeType: "application/json",
+    buffer: Buffer.from(JSON.stringify({
       format: "hash-timestamp-proof-v1",
       programId: program,
       rpc: "https://api.devnet.solana.com",
       proof,
-    }),
-  );
-  await page
-    .getByRole("button", { name: "Check format & load history" })
-    .click();
+    })),
+  });
+  await expect(page.getByLabel("Restore proof selection")).toHaveCount(0);
   await expect(
     page.getByText("This proof export belongs to another program or RPC.", {
       exact: false,

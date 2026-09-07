@@ -227,33 +227,42 @@ const content: Record<DocTopicId, ReactNode> = {
   restore: (
     <>
       <GuideNote title="Before you start">
-        Use a proof downloaded from Inspect or a transaction result. The first
-        record in that proof must still exist on the original network. If it has
-        been removed, you need another saved proof linking the history to a
-        record that is still available.
+        Use an original or combined proof file on its original network. A
+        matching record must still exist on that network to anchor the saved
+        history. Restore finds an available anchor for the records you select.
       </GuideNote>
       <ol>
         <li>
           <strong>Open your saved proof.</strong> Select the original network,
           open History → Restore and choose the proof file. Keep your original
-          file too.
+          file too. The graph checks for matching existing records and marks
+          them green. Use “Refresh live records” to repeat that check.
         </li>
         <li>
-          <strong>Load the history.</strong> Choose “Check format & load
-          history”. This reads the file; it does not yet confirm that the
-          history is valid.
+          <strong>Select records in the graph.</strong> Hover over a circle or
+          click it to open its details, then tick “Restore this record”. Selected
+          circles have a pink outline and a check mark. A green anchor confirms
+          that record, not that every restore operation is possible. Existing
+          records cannot be selected for restoration. Bright connections show
+          one shortest path from an available anchor to each selected record;
+          alternative routes and unselected side branches stay dim.
         </li>
         <li>
-          <strong>Choose what to do and check it.</strong> Leave recreation off
-          to check history only, or enable it to bring back eligible older
-          records. Then choose “Check proof & live state — no fee” and review
-          any warnings.
+          <strong>Check the route.</strong> Choose “Check selected records — no
+          fee”. The highlighted paths now start from the anchors chosen for
+          Restore. Supporting group records may still be needed even when their
+          connections are dim. The anchor and shortest history paths
+          stay visible even if the transaction is too large. If additional records
+          are needed, review and select them, then check again. They are never
+          restored without your selection.
         </li>
         <li>
           <strong>Confirm in your wallet.</strong> Submit only after the checks
-          pass. Both choices cost transaction fees; recreating records also
-          needs SOL to store them. Changing the proof or options requires
-          another check.
+          pass. Review the number of transactions: each costs a fee, and
+          recreating records also needs SOL to store them. A later transaction
+          can fail after earlier ones succeed; keep the receipt and recheck
+          before retrying. Changing the file, selection, network or wallet
+          requires another check.
         </li>
       </ol>
       <GuideNote title="Restore records, not lost files" warning>
@@ -341,10 +350,10 @@ const content: Record<DocTopicId, ReactNode> = {
         </li>
       </ol>
       <GuideNote title="Keep the original proof files too" warning>
-        The merged download cannot be used directly in Restore. Keep the
-        individual proofs from Inspect or your transaction results for that
-        step. Combining files alone does not confirm their history on the
-        network.
+        You can open the combined file in Restore and choose records from its
+        graph. Keep your originals as a backup. Combining files alone does not
+        confirm their history on the network; restoration still needs an
+        available anchor and enough saved history.
       </GuideNote>
       <h2>Before you leave</h2>
       <p>

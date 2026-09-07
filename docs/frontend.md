@@ -97,7 +97,7 @@ initiating control without changing the current network or history.
 | Branch       | Provide a parent ID or PDA and choose a new file version, or paste its 32-byte digest. Check the live parent and preview the child ID/PDA without signing. Optional parent-vote withdrawal requires your vote and can close the parent. |
 | Batch / Pack | Import proof files and select/reorder members, or enter IDs and PDAs manually. Check live records before creating the group. Batch stores IDs; Pack needs retained history. |
 | Account      | Commit the current metadata and data of a Solana account. Save the captured snapshot for historical proof use.                                                                                                                          |
-| Restore      | Import proof JSON, load retained history, then check commitments, dependencies, live state and transaction size before submitting proof-only validation or account recreation.                                                          |
+| Restore      | Open an original or combined proof file, select records in the shared graph viewer, check live anchors and required paths, then restore the explicitly selected records. |
 | Merge proofs | Select several JSON archives or legacy proof files, merge matching nodes locally, review missing history, and download one SDK archive. No wallet or RPC required. |
 | Proof inspector | Draw one original or combined proof as a graph of connected records and independent histories. Hover/focus circles for IDs and timestamps; click/tap for full details. Pan, zoom and search locally; no wallet, RPC or transaction required. |
 | Proof check  | Choose proof JSON and a resource file, find saved file timestamps across versions/groups, then optionally check a matching live record or complete historical path. No wallet or transaction required. |
@@ -178,8 +178,9 @@ the warning identifies it as incomplete. **A partial export is not a complete
 restore proof.** If the new record cannot be read, it may contain only predecessor
 entries and lacks the new anchor's timestamp. Complete the history before use.
 
-Proof exports contain `format: "hash-timestamp-proof-v1"`, program/RPC metadata,
-and a `proof` array. Imports accept this envelope or a normalized SDK-shaped
+Retained-history exports use `format: "hash-timestamp-proof-v1"`, program/RPC metadata,
+and a `proof` array. Archive Restore receipts download the SDK archive instead.
+File imports accept SDK archives, the legacy envelope or a normalized SDK-shaped
 array. Fixed32 hashes accept byte arrays, hex or Base58; arbitrary payload/data
 strings remain hex-only (including Restore Hash `params.payload`). Public keys
 accept Base58, hex or byte arrays. Use decimal strings for large `i64`/`u64` values. Fingerprint
@@ -188,42 +189,63 @@ Exported network metadata must match the selected endpoint; plain arrays have no
 network guard, so verify their origin yourself. Equivalent RPC aliases can be
 used by reviewing the JSON and explicitly selecting/importing the intended array.
 
-The live anchor must be entry zero. Remaining entries need not be topologically
-ordered: the SDK and contract resolve their identities. See the
-[contract instruction reference](../hash-timestamp/docs/instructions.md#restore) for proof
-rules. **Check format & load history** only parses and retains entries; it also
-accepts partial history for later proof collection. **Check proof & live state**
-then checks source/parameter agreement, duplicate IDs, connected dependencies,
-fingerprints, generations, hash commitments, the live anchor and requested
-historical incarnations. It also encodes the unsigned transaction to check the
-1232-byte limit, without broadcasting or asking for a signature.
+### Graphical Restore
 
-Account snapshots use the SDK's RPC-shaped numeric helper only when their u64
-values round-trip exactly; otherwise a warning leaves that snapshot digest for
-on-chain validation instead of silently rounding. Snapshot-free account links
-are accepted only when the matching live record is actually supplied to restore.
+Restore accepts files only; there is no JSON text editor. Import uses the same
+archive reader as Merge proofs, including legacy program/RPC checks. Opening a
+file parses its history locally and displays the shared proof graph, then checks
+saved addresses on the selected network without signing. A conflict with session history shows a warning
+but does not prevent working with an otherwise valid imported archive.
 
-Submission requires a successful preflight for the current inputs, mode, network
-and wallet, and repeats it immediately before sending. Editing any of these
-invalidates the preview. Preflight is not a simulation or proof of transaction
-success: RPC state may change, and rent, fees and runtime conditions still apply.
-Selecting a replacement Restore file clears the previous JSON and preflight
-immediately. Format loading stays disabled during the file read, and failed
-imports cannot reuse an earlier proof. Manual edits supersede pending file reads.
+Hover a circle for an interactive preview or click/tap for full details, then
+tick **Restore this record**. Selected circles have a pink outline and check
+badge. Existing records, conflicting occupied addresses and missing-reference
+placeholders cannot be selected. Refreshed live status removes newly existing
+records from the selection. One shortest verified path per selected record is
+bright immediately, independently of transaction planning. Shortest means fewest
+edges from a complete, matching live anchor. Equal-length alternatives are resolved
+deterministically by sorted anchor addresses and stored member order; only one
+route per target is highlighted, with shared edges shown once. Incomplete dependencies
+do not establish a trusted path. **Check selected
+records — no fee** invokes the SDK archive planner without signing: it finds
+historically matching live anchors, verifies the needed dependency closure and
+checks unsigned transaction size. An occupied PDA with different history is not
+a valid anchor. The independent live scan marks matching records green even
+when the full proof is incomplete or too large for a transaction. It uses the
+SDK planner's owner, discriminator, PDA/bump, voters and historical-state checks;
+failed reads remain unknown, not missing. **Refresh live records** repeats this
+scan and invalidates the route plan. After planning, each step highlights only
+the shortest routes from its chosen anchor to its targets, within that step's
+proof. A target shared by several steps is shown through the first step that
+covers it, without adding duplicate routes for later revalidation. The planner
+ranks feasible anchors by coverage, required creations and
+transaction size, not hop count, so a checked route can differ from the preview.
+Alternative routes and Batch/Pack side branches remain dim, but required sibling
+dependencies are still included in the submitted proof. Supporting nodes are not
+automatically selected.
 
-Proof-only mode is the default and still pays transaction fees. Materialization
-requests every non-anchor entry with parameters; this UI does not select an
-arbitrary subset. Existing records must match the proven incarnation. Returned
-IDs are requested records, not necessarily newly created records. Conflicting
-incarnations on unrequested non-anchor accounts do not invalidate proof-only
-history, but block recreation of those occupied records. Conflicting proof
-incarnations cannot be merged in one in-memory history; save them separately and
-clear the retained history before importing an alternative chain.
+The plan lists transactions and any additional intermediate records that the
+contract would need to recreate. Submission remains blocked until the user
+explicitly selects those records and checks again. Already matching selected
+records need no recreation. A valid plan may contain multiple transactions for
+separate anchors; an oversized individual proof is still rejected, not split
+arbitrarily. See the [SDK archive planner](../hash-timestamp/docs/archive.md) and
+[contract Restore rules](../hash-timestamp/docs/instructions.md#restore).
 
-The collector limits traversal to 32 records. JSON imports allow at most 64
-entries and 2 MB. These are browser limits, **not transaction-size guarantees**.
-The SDK submits a single transaction; large chains/snapshots can exceed Solana
-limits. No automatic splitting or fabricated history is performed.
+Changing the file, selection, network or wallet invalidates the plan and its
+planned-route highlighting; shortest history paths are recalculated for the new
+selection. Selecting another node does not erase the live-record
+snapshot. Clearing/replacing the file immediately removes the old
+graph; failed or superseded reads cannot reuse it. Only one planning scan runs
+at a time. Signing requires a checked plan with no unselected creations; the app
+replans immediately before execution and rejects changes in its effects. This
+is not a simulation or a guarantee of success: state, fees and rent may change.
+If a later transaction fails, the receipt preserves the signatures and archive
+from earlier confirmed steps, with a warning to recheck before retrying.
+
+The collector limits traversal to 32 records. Archive files allow 16 MiB and
+10,000 nodes; legacy inputs retain the 2 MB / 64-entry parser limit. These limits
+are **not transaction-size guarantees**. No missing history is fabricated.
 
 ## Check a file against a proof
 
@@ -333,6 +355,20 @@ candidate discovery. `proof-graph.ts` owns the presentation graph and components
 `ProofGraphViewer.tsx` owns canvas interactions, and `ProofNodeDetails.tsx` formats
 record information with `proof-node-display.ts` (shared icons and UTC date display).
 `ProofInspectorPanel.tsx` owns file loading and the screen.
+Restore reuses this viewer through `RestoreGraphContext.tsx`, with selection and
+checked-plan highlighting kept separate from graph identity and layout.
+`RestoreNodePreview.tsx` provides a non-modal interactive hover preview and the
+shared checkbox used in the details dialog. `RestorePanel.tsx` owns file import,
+selection and stale-check invalidation. `restore-anchors.ts` uses the SDK's strict
+record reader, and `use-restore-anchors.ts` owns the cancellable file/network-scoped
+snapshot. `restore-paths.ts` finds shortest paths with a multi-source breadth-first
+search using the SDK-validated graph and its completeness diagnostics, without
+compiling transactions. For a checked step, it restricts traversal to that
+SDK-validated proof and trusts the planner's witness checks, including live Account
+records whose snapshots are not included in the archive.
+`restore-graph.ts` adapts SDK planning,
+per-step proof highlighting and execution receipts. Plain Proof inspector stays
+local and does not acquire Restore controls or network calls.
 Protocol validation remains in the synchronized SDK. Library integration follows
 the [React Flow custom-node documentation](https://reactflow.dev/learn/customization/custom-nodes)
 and [Dagre layout example](https://reactflow.dev/examples/layout/dagre).
@@ -371,9 +407,9 @@ status check is independent of this local operation.
 The downloaded `hash-timestamp-archive.json` uses the
 [SDK archive format](../hash-timestamp/docs/archive.md), including lowercase hex
 hashes and Base58 public keys/PDAs, without filenames or network metadata. It is
-not a ready-to-submit proof chain. Use the SDK archive planner for restoration;
-the **Restore** tab still imports the legacy proof format. Verify the original
-network before performing any on-chain operation.
+not a ready-to-submit proof chain. Open it in **Restore**, select records and
+check their paths; the SDK planner chooses the necessary proofs from the archive.
+Verify the original network before performing any on-chain operation.
 
 ## SDK and IDL synchronization
 
@@ -416,14 +452,18 @@ boundary and package versions, then sync, test and build.
 The SDK owns hashes, PDAs, account decoding, instruction construction and restore
 encoding. Application operations retain the same parent/member snapshots used by
 the SDK to build instructions and collect exportable history. UI components do
-not reimplement protocol formulas or make fake wallet providers for reads.
+not reimplement protocol formulas. Archive planning needs a payer to estimate
+transaction size: its read-only adapter uses the connected public key, or a
+placeholder while disconnected, with signing methods that always reject. A
+wallet change invalidates that preview; submission uses the real signing client.
 
 Creation receipts also retain the SDK's one-node `archive`; register/branch now
 return `{ signature, archive }`. The SDK's versioned node graph and automatic
 restore planner are documented in the [archive guide](../hash-timestamp/docs/archive.md).
-Record/receipt proof exports and Restore import use the separate legacy proof
-format. Merge proofs accepts those exports and SDK archives and writes SDK
-archives; it does not change the Restore input format. A confirmed `ArchiveCaptureError` keeps
+Retained-history and creation receipts export collected legacy proofs; a creation's
+one-node SDK archive must not replace that full history. Archive Restore receipts
+download the complete SDK archive from the confirmed steps. Merge proofs and
+Restore accept both file formats. A confirmed `ArchiveCaptureError` keeps
 the transaction receipt visible with a warning; uncertain submissions retain the
 signature in the error and must be checked before retrying.
 

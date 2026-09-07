@@ -29,6 +29,7 @@ import { checkRestore } from "../history/check-restore";
 
 export interface Receipt {
   signature: string;
+  signatures?: string[];
   ids: string[];
   proof?: RestoreProofInput[];
   archive?: HashArchive;

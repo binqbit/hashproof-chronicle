@@ -15,7 +15,7 @@ import {
   type NodeProps,
   type Viewport,
 } from "@xyflow/react";
-import { Maximize, Minus, Plus, Search, X } from "lucide-react";
+import { Anchor, Check, Maximize, Minus, Plus, Search, X } from "lucide-react";
 import { Notice } from "../workspace/fields";
 import { ProofNodeDetails } from "./ProofNodeDetails";
 import { proofNodeIcon } from "./proof-node-display";
@@ -24,7 +24,18 @@ import {
   useGraphNavigation,
   useGraphOverview,
 } from "./graph-navigation";
-import { nodeKind, type ProofGraph, type ProofGraphNode } from "./proof-graph";
+import {
+  graphEdgeId,
+  nodeKind,
+  type ProofGraph,
+  type ProofGraphNode,
+} from "./proof-graph";
+import {
+  RestoreGraphContext,
+  useRestoreGraph,
+  type RestoreGraphInteraction,
+} from "./RestoreGraphContext";
+import { RestoreNodeControl, RestoreNodePreview } from "./RestoreNodePreview";
 import {
   NODE_HEIGHT,
   NODE_WIDTH,
@@ -37,6 +48,7 @@ type RecordNode = Node<{ record: ProofGraphNode }, "proof">;
 const short = (value: string) => `${value.slice(0, 7)}…${value.slice(-5)}`;
 
 function CircleNode({ data }: NodeProps<RecordNode>) {
+  const restore = useRestoreGraph();
   const [opened, setOpened] = useState(false);
   const [hovered, setHovered] = useState(false);
   const returningFocus = useRef(false);
@@ -47,61 +59,91 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
     !node.record ||
     (node.record.source.kind === "pack" && node.record.members === undefined) ||
     (node.record.source.kind === "account" && !node.record.snapshot);
+  const trigger = (
+    <Dialog.Trigger asChild>
+      <button
+        className="proof-node-circle nodrag nopan"
+        type="button"
+        aria-label={`${nodeKind(node)} record ${node.pda}`}
+        data-pda={node.pda}
+        onBlurCapture={() => {
+          returningFocus.current = false;
+        }}
+        onPointerMoveCapture={(event) => {
+          if (event.pointerType !== "touch") returningFocus.current = false;
+        }}
+      >
+        <Icon size={27} aria-hidden="true" />
+        {incomplete && (
+          <span
+            className="proof-node-warning"
+            aria-label="Incomplete saved data"
+          >
+            !
+          </span>
+        )}
+        {restore?.selected.has(node.pda) && (
+          <span
+            className="proof-restore-badge"
+            aria-label="Selected for restore"
+          >
+            <Check size={17} />
+          </span>
+        )}
+        {restore?.anchors.has(node.pda) && (
+          <span
+            className="proof-anchor-badge"
+            aria-label="Validated live anchor"
+          >
+            <Anchor size={16} />
+          </span>
+        )}
+      </button>
+    </Dialog.Trigger>
+  );
   return (
-    <div className="proof-graph-node" data-kind={kind ?? "missing"}>
+    <div
+      className="proof-graph-node"
+      data-kind={kind ?? "missing"}
+      data-restore-selected={restore?.selected.has(node.pda) || undefined}
+      data-restore-anchor={restore?.anchors.has(node.pda) || undefined}
+      data-restore-required={restore?.required.has(node.pda) || undefined}
+      data-restore-proof={restore?.proofNodes.has(node.pda) || undefined}
+    >
       <Handle type="target" position={Position.Top} />
       <Dialog.Root open={opened} onOpenChange={setOpened}>
-        <Tooltip.Root
-          open={hovered && !opened}
-          onOpenChange={(next) => {
-            if (!next || !returningFocus.current) setHovered(next);
-          }}
-        >
-          <Tooltip.Trigger asChild>
-            <Dialog.Trigger asChild>
-              <button
-                className="proof-node-circle nodrag nopan"
-                type="button"
-                aria-label={`${nodeKind(node)} record ${node.pda}`}
-                data-pda={node.pda}
-                onBlurCapture={() => {
-                  returningFocus.current = false;
-                }}
-                onPointerMoveCapture={(event) => {
-                  if (event.pointerType !== "touch")
-                    returningFocus.current = false;
-                }}
+        {restore ? (
+          <RestoreNodePreview node={node} detailsOpen={opened}>
+            {trigger}
+          </RestoreNodePreview>
+        ) : (
+          <Tooltip.Root
+            open={hovered && !opened}
+            onOpenChange={(next) => {
+              if (!next || !returningFocus.current) setHovered(next);
+            }}
+          >
+            <Tooltip.Trigger asChild>{trigger}</Tooltip.Trigger>
+            <Tooltip.Portal>
+              <Tooltip.Content
+                className="proof-node-popup proof-node-tooltip"
+                side="top"
+                sideOffset={8}
+                collisionPadding={12}
+                data-testid="proof-node-tooltip"
+                onEscapeKeyDown={() => setHovered(false)}
               >
-                <Icon size={27} aria-hidden="true" />
-                {incomplete && (
-                  <span
-                    className="proof-node-warning"
-                    aria-label="Incomplete saved data"
-                  >
-                    !
-                  </span>
-                )}
-              </button>
-            </Dialog.Trigger>
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Content
-              className="proof-node-popup proof-node-tooltip"
-              side="top"
-              sideOffset={8}
-              collisionPadding={12}
-              data-testid="proof-node-tooltip"
-              onEscapeKeyDown={() => setHovered(false)}
-            >
-              <ProofNodeDetails node={node} compact />
-              <Tooltip.Arrow className="proof-tooltip-arrow" />
-            </Tooltip.Content>
-          </Tooltip.Portal>
-        </Tooltip.Root>
+                <ProofNodeDetails node={node} compact />
+                <Tooltip.Arrow className="proof-tooltip-arrow" />
+              </Tooltip.Content>
+            </Tooltip.Portal>
+          </Tooltip.Root>
+        )}
         <Dialog.Portal>
           <Dialog.Overlay className="proof-record-overlay" />
           <Dialog.Content
             className="proof-node-popup proof-node-dialog"
+            data-restore={Boolean(restore) || undefined}
             aria-describedby={undefined}
             onCloseAutoFocus={() => {
               // Keep Radix's correct focus return, without reopening the tooltip.
@@ -119,6 +161,7 @@ function CircleNode({ data }: NodeProps<RecordNode>) {
               <X size={18} />
             </Dialog.Close>
             <ProofNodeDetails node={node} />
+            <RestoreNodeControl node={node} />
           </Dialog.Content>
         </Dialog.Portal>
       </Dialog.Root>
@@ -237,9 +280,11 @@ function GraphNavigation({
 function GraphCanvas({
   graph,
   layout,
+  restore,
 }: {
   graph: ProofGraph;
   layout: GraphLayout;
+  restore?: RestoreGraphInteraction;
 }) {
   const large = graph.nodes.size > 250;
   const canvasRef = useRef<HTMLDivElement>(null);
@@ -277,7 +322,12 @@ function GraphCanvas({
   const edges = useMemo(
     () =>
       graph.edges.map((edge) => ({
-        id: `${edge.source}-${edge.target}`,
+        id: graphEdgeId(edge.source, edge.target),
+        className: restore
+          ? restore.proofEdges.has(graphEdgeId(edge.source, edge.target))
+            ? "proof-edge-active"
+            : "proof-edge-muted"
+          : undefined,
         source: edge.source,
         target: edge.target,
         type: "default",
@@ -288,13 +338,17 @@ function GraphCanvas({
           markerUnits: "userSpaceOnUse",
           width: 18,
           height: 18,
-          color: "#d7c8ff",
+          color: restore
+            ? restore.proofEdges.has(graphEdgeId(edge.source, edge.target))
+              ? "#67e8cd"
+              : "#716985"
+            : "#d7c8ff",
         },
         focusable: false,
         selectable: false,
         ariaLabel: `${edge.source} to ${edge.target}${edge.member ? `, member ${edge.member}` : ", previous record"}`,
       })),
-    [graph],
+    [graph, restore],
   );
   const bounds = useMemo(() => getNodesBounds(nodes), [nodes]);
   const overview = useGraphOverview(canvasRef, bounds);
@@ -367,10 +421,36 @@ function GraphCanvas({
           </span>
         ))}
       </div>
+      {restore && (
+        <div
+          className="proof-graph-legend proof-restore-legend"
+          aria-label="Restore graph legend"
+        >
+          <span className="restore-selected-key">
+            <Check size={14} />
+            Selected for restore
+          </span>
+          <span className="restore-anchor-key">
+            <Anchor size={14} />
+            Validated live anchor
+          </span>
+          <span className="restore-proof-key">
+            <i />
+            Shortest restore paths
+          </span>
+          <span className="restore-required-key">
+            <i />
+            Required extra record
+          </span>
+        </div>
+      )}
       <p className="fine-print">
         Drag the background or hold the mouse wheel to pan; scroll or pinch to
         zoom. Fit graph shows the full history; zoom-out stops at that overview.
-        Hover or focus a circle for a preview; click or tap for full details.
+        {" "}
+        {restore
+          ? "Hover for restore selection; click, tap or press Enter on a circle for full details."
+          : "Hover or focus a circle for a preview; click or tap for full details."}{" "}
         Arrows point to earlier records or group members; numbers show member
         order.
       </p>
@@ -378,7 +458,13 @@ function GraphCanvas({
   );
 }
 
-export default function ProofGraphViewer({ graph }: { graph: ProofGraph }) {
+export default function ProofGraphViewer({
+  graph,
+  restore,
+}: {
+  graph: ProofGraph;
+  restore?: RestoreGraphInteraction;
+}) {
   const [layout, setLayout] = useState<GraphLayout>();
   const [error, setError] = useState("");
   useEffect(() => {
@@ -431,5 +517,9 @@ export default function ProofGraphViewer({ graph }: { graph: ProofGraph }) {
   }, [graph]);
   if (error) return <Notice error>{error}</Notice>;
   if (!layout) return <p role="status">Arranging proof graph…</p>;
-  return <GraphCanvas graph={graph} layout={layout} />;
+  return (
+    <RestoreGraphContext.Provider value={restore}>
+      <GraphCanvas graph={graph} layout={layout} restore={restore} />
+    </RestoreGraphContext.Provider>
+  );
 }

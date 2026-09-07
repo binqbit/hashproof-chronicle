@@ -6,7 +6,6 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
 } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -15,7 +14,6 @@ import { BranchPanel } from "../../src/features/records/BranchPanel";
 import { AccountPanel } from "../../src/features/records/AccountPanel";
 import { RecordPanel } from "../../src/features/records/RecordPanel";
 import { RegisterPanel } from "../../src/features/records/RegisterPanel";
-import { RestorePanel } from "../../src/features/history/RestorePanel";
 import type { SelectField } from "../../src/components/SelectField";
 import type { ComponentProps } from "react";
 
@@ -24,7 +22,6 @@ const state = vi.hoisted(() => ({
   client: {},
   checkAggregate: vi.fn(),
   checkBranch: vi.fn(),
-  checkRestore: vi.fn(),
   resolveRecord: vi.fn(),
 }));
 vi.mock("../../src/contract/network", () => ({
@@ -39,9 +36,6 @@ vi.mock("../../src/features/workspace/use-contract", () => ({
 vi.mock("../../src/features/records/preflight", () => ({
   checkAggregate: state.checkAggregate,
   checkBranch: state.checkBranch,
-}));
-vi.mock("../../src/features/history/check-restore", () => ({
-  checkRestore: state.checkRestore,
 }));
 vi.mock("../../src/contract/records", () => ({
   resolveRecord: state.resolveRecord,
@@ -82,7 +76,6 @@ beforeEach(() => {
   state.busy = false;
   state.checkAggregate.mockResolvedValue(undefined);
   state.checkBranch.mockResolvedValue(undefined);
-  state.checkRestore.mockResolvedValue({ nodes: [], errors: [], warnings: [] });
   state.resolveRecord.mockResolvedValue(undefined);
 });
 afterEach(() => {
@@ -101,9 +94,6 @@ const button = (name: string | RegExp) =>
   screen.getByRole("button", { name }) as HTMLButtonElement;
 const fill = (label: string, value: string) =>
   fireEvent.change(screen.getByLabelText(label), { target: { value } });
-const proof = JSON.stringify([
-  { hash: "ab".repeat(32), source: { kind: "hash" }, createdAt: "100" },
-]);
 
 async function manualMembers(user: ReturnType<typeof userEvent.setup>) {
   await user.selectOptions(
@@ -223,60 +213,6 @@ it("keeps Timestamp empty-input checks consistent between the button and submit 
   expect(screen.queryByRole("alert")).toBeNull();
 });
 
-it("blocks whitespace Restore input and invalidates ready actions when input is cleared", async () => {
-  const user = userEvent.setup();
-  const onHistory = vi.fn();
-  render(<RestorePanel {...props()} onHistory={onHistory} />);
-  for (const value of ["", " \n\t"]) {
-    fill("Proof chain JSON", value);
-    expect(button("Check format & load history").disabled).toBe(true);
-    await user.click(button("Check format & load history"));
-  }
-  expect(onHistory).not.toHaveBeenCalled();
-  expect(screen.queryByRole("alert")).toBeNull();
-  fill("Proof chain JSON", proof);
-  await user.click(button("Check format & load history"));
-  expect(button("Validate proof on-chain — fee").disabled).toBe(true);
-  await user.click(button("Check proof & live state — no fee"));
-  expect(button("Validate proof on-chain — fee").disabled).toBe(false);
-  fill("Proof chain JSON", "");
-  expect(button("Check format & load history").disabled).toBe(true);
-  expect(
-    screen.queryByRole("button", { name: "Validate proof on-chain — fee" }),
-  ).toBeNull();
-});
-
-it("disables Restore parsing during a replacement file read and ignores stale file completion after manual input", async () => {
-  const user = userEvent.setup();
-  render(<RestorePanel {...props()} onHistory={vi.fn()} />);
-  fill("Proof chain JSON", proof);
-  await user.click(button("Check format & load history"));
-  await user.click(button("Check proof & live state — no fee"));
-  let finish!: (contents: string) => void;
-  const file = new File([proof], "replacement.json", {
-    type: "application/json",
-  });
-  Object.defineProperty(file, "text", {
-    value: () =>
-      new Promise<string>((resolve) => {
-        finish = resolve;
-      }),
-  });
-  await user.upload(screen.getByLabelText("Import proof JSON"), file);
-  expect(button("Reading proof file…").disabled).toBe(true);
-  expect(
-    (screen.getByLabelText("Proof chain JSON") as HTMLTextAreaElement).value,
-  ).toBe("");
-  fill("Proof chain JSON", proof);
-  expect(button("Check format & load history").disabled).toBe(false);
-  await act(async () => finish("stale file contents"));
-  expect(
-    (screen.getByLabelText("Proof chain JSON") as HTMLTextAreaElement).value,
-  ).toBe(proof);
-  await user.click(button("Check format & load history"));
-  expect(button("Validate proof on-chain — fee").disabled).toBe(true);
-});
-
 it("keeps populated aggregate actions locked while a check or transaction is pending", async () => {
   const user = userEvent.setup();
   const operation = props();
@@ -300,23 +236,4 @@ it("keeps populated aggregate actions locked while a check or transaction is pen
   view.rerender(<AggregatePanel {...operation} />);
   expect(button("Create batch + first vote").disabled).toBe(true);
   expect(button("Check members & preview — no fee").disabled).toBe(true);
-});
-
-it("does not offer a stale Restore payload after a replacement file fails to read", async () => {
-  const user = userEvent.setup();
-  render(<RestorePanel {...props()} onHistory={vi.fn()} />);
-  fill("Proof chain JSON", proof);
-  await user.click(button("Check format & load history"));
-  const file = new File([proof], "broken.json", { type: "application/json" });
-  Object.defineProperty(file, "text", {
-    value: vi.fn().mockRejectedValue(new Error("File read failed")),
-  });
-  await user.upload(screen.getByLabelText("Import proof JSON"), file);
-  await waitFor(() =>
-    expect(screen.getByRole("alert").textContent).toContain("File read failed"),
-  );
-  expect(button("Check format & load history").disabled).toBe(true);
-  expect(
-    screen.queryByRole("button", { name: "Validate proof on-chain — fee" }),
-  ).toBeNull();
 });

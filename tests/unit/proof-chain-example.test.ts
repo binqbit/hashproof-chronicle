@@ -18,7 +18,8 @@ import {
   prepareRestore,
   stringifyArchive,
 } from "../../src/contract/sdk";
-import { buildProofGraph } from "../../src/features/history/proof-graph";
+import { buildProofGraph, graphEdgeId } from "../../src/features/history/proof-graph";
+import { shortestRestorePaths } from "../../src/features/history/restore-paths";
 import {
   checkFileProof,
   findFileInArchive,
@@ -95,6 +96,15 @@ it("contains exactly the approved graph, including shared members, forks and all
     batch: 3,
     pack: 1,
   });
+});
+
+it("highlights only the shorter left fork from the live Pack to file A", () => {
+  const path = ["Pack", "L2", "L1", "Batch3", "X2", "X1", "Batch1", "A1", "A"].map(address);
+  const view = shortestRestorePaths(graph, new Set([address("Pack")]), [address("A")]);
+  expect(view.proofNodes).toEqual(new Set(path));
+  expect(view.proofEdges).toEqual(new Set(
+    path.slice(1).map((pda, index) => graphEdgeId(path[index], pda)),
+  ));
 });
 
 it("authenticates the real files, canonical IDs and every PDA independently", () => {

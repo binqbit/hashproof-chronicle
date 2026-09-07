@@ -54,14 +54,14 @@ it("identifies the original contract and SDK with one clear, safe GitHub link", 
   expect(link.textContent).toContain("Smart contract & SDK");
 });
 
-it("keeps the merged-file Restore limitation prominent and actionable", () => {
+it("explains combined-file Restore support without claiming network validation", () => {
   render(<DocContent topic="proofs" />);
   const warning = screen.getByRole("complementary", {
     name: "Keep the original proof files too",
   });
-  expect(warning.textContent).toContain("cannot be used directly in Restore");
-  expect(warning.textContent).toContain("individual proofs from Inspect");
-  expect(warning.textContent).toContain("does not confirm their history");
+  expect(warning.textContent).toContain("open the combined file in Restore");
+  expect(warning.textContent).toContain("originals as a backup");
+  expect(warning.textContent).toMatch(/does not\s+confirm their history/);
 });
 
 it("retains Restore prerequisites and explains that it cannot recover lost files", () => {
@@ -69,7 +69,7 @@ it("retains Restore prerequisites and explains that it cannot recover lost files
   expect(
     screen.getByRole("complementary", { name: "Before you start" }).textContent,
   ).toMatch(
-    /first record in that proof must still exist on the original network/,
+    /matching record must still exist on that network/,
   );
   expect(
     screen.getByRole("complementary", {

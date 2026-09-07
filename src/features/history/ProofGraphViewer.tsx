@@ -1,9 +1,10 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState, type RefObject } from "react";
 import * as Tooltip from "@radix-ui/react-tooltip";
 import * as Dialog from "@radix-ui/react-dialog";
 import {
   Background,
   BackgroundVariant,
+  getNodesBounds,
   Handle,
   MarkerType,
   Position,
@@ -12,11 +13,17 @@ import {
   useReactFlow,
   type Node,
   type NodeProps,
+  type Viewport,
 } from "@xyflow/react";
 import { Maximize, Minus, Plus, Search, X } from "lucide-react";
 import { Notice } from "../workspace/fields";
 import { ProofNodeDetails } from "./ProofNodeDetails";
 import { proofNodeIcon } from "./proof-node-display";
+import {
+  GRAPH_MAX_ZOOM,
+  useGraphNavigation,
+  useGraphOverview,
+} from "./graph-navigation";
 import { nodeKind, type ProofGraph, type ProofGraphNode } from "./proof-graph";
 import {
   NODE_HEIGHT,
@@ -134,16 +141,21 @@ function HistoryLabel({
 }
 const nodeTypes = { proof: CircleNode, history: HistoryLabel };
 
-function GraphControls({ graph }: { graph: ProofGraph }) {
+function GraphControls({
+  graph,
+  overview,
+}: {
+  graph: ProofGraph;
+  overview: Viewport;
+}) {
   const flow = useReactFlow();
   const [query, setQuery] = useState("");
   const [message, setMessage] = useState("");
-  const large = graph.nodes.size > 250;
   const fit = () =>
-    void flow.fitView({
-      padding: 0.2,
+    void flow.setViewport(overview, {
       duration: 250,
-      minZoom: large ? 0.5 : 0.005,
+      // Smooth fit briefly zooms out during long pans; linear respects the floor.
+      interpolate: "linear",
     });
   const locate = (event: React.FormEvent) => {
     event.preventDefault();
@@ -159,8 +171,10 @@ function GraphControls({ graph }: { graph: ProofGraph }) {
     void flow.fitView({
       nodes: [{ id: match.pda }],
       padding: 1,
+      minZoom: overview.zoom,
       maxZoom: 1.3,
       duration: 250,
+      interpolate: "linear",
     });
   };
   return (
@@ -187,7 +201,7 @@ function GraphControls({ graph }: { graph: ProofGraph }) {
           <Plus size={18} />
         </button>
         <button type="button" onClick={fit}>
-          <Maximize size={17} /> {large ? "Center graph" : "Fit graph"}
+          <Maximize size={17} /> Fit graph
         </button>
       </div>
       <form className="proof-graph-search" onSubmit={locate}>
@@ -209,6 +223,17 @@ function GraphControls({ graph }: { graph: ProofGraph }) {
   );
 }
 
+function GraphNavigation({
+  canvasRef,
+  overview,
+}: {
+  canvasRef: RefObject<HTMLDivElement>;
+  overview: Viewport;
+}) {
+  useGraphNavigation(canvasRef, overview);
+  return null;
+}
+
 function GraphCanvas({
   graph,
   layout,
@@ -217,6 +242,7 @@ function GraphCanvas({
   layout: GraphLayout;
 }) {
   const large = graph.nodes.size > 250;
+  const canvasRef = useRef<HTMLDivElement>(null);
   const nodes = useMemo(
     () => [
       ...layout.nodes.map(
@@ -254,13 +280,15 @@ function GraphCanvas({
         id: `${edge.source}-${edge.target}`,
         source: edge.source,
         target: edge.target,
-        type: "smoothstep",
+        type: "default",
         label: edge.member === undefined ? undefined : String(edge.member),
         markerEnd: {
           type: MarkerType.ArrowClosed,
-          width: 17,
-          height: 17,
-          color: "#a7a2db",
+          // Arrowheads follow the graph scale, independently of the line's minimum width.
+          markerUnits: "userSpaceOnUse",
+          width: 18,
+          height: 18,
+          color: "#d7c8ff",
         },
         focusable: false,
         selectable: false,
@@ -268,53 +296,63 @@ function GraphCanvas({
       })),
     [graph],
   );
+  const bounds = useMemo(() => getNodesBounds(nodes), [nodes]);
+  const overview = useGraphOverview(canvasRef, bounds);
   return (
     <ReactFlowProvider>
-      <GraphControls graph={graph} />
+      {overview && <GraphControls graph={graph} overview={overview} />}
       <div
+        ref={canvasRef}
         className="proof-graph-canvas"
         role="region"
         aria-label="Proof graph viewer"
+        onMouseDownCapture={(event) => {
+          // Suppress browser autoscroll, while allowing React Flow's middle drag.
+          if (event.button === 1) event.preventDefault();
+        }}
       >
         <Tooltip.Provider delayDuration={180}>
-          <ReactFlow
-            nodes={nodes}
-            edges={edges}
-            nodeTypes={nodeTypes}
-            nodesDraggable={false}
-            nodesConnectable={false}
-            edgesReconnectable={false}
-            deleteKeyCode={null}
-            selectionOnDrag={false}
-            nodesFocusable={false}
-            edgesFocusable={false}
-            fitView
-            fitViewOptions={{
-              padding: 0.2,
-              maxZoom: 1.05,
-              minZoom: large ? 0.5 : 0.005,
-            }}
-            minZoom={large ? 0.5 : 0.005}
-            maxZoom={2}
-            onlyRenderVisibleElements={large}
-            preventScrolling={false}
-            zoomOnDoubleClick={false}
-            colorMode="dark"
-          >
-            <Background
-              variant={BackgroundVariant.Dots}
-              gap={24}
-              size={1}
-              color="#615a8e"
-            />
-          </ReactFlow>
+          {overview && (
+            <ReactFlow
+              nodes={nodes}
+              edges={edges}
+              nodeTypes={nodeTypes}
+              nodesDraggable={false}
+              nodesConnectable={false}
+              edgesReconnectable={false}
+              deleteKeyCode={null}
+              selectionOnDrag={false}
+              panOnDrag={[0, 1]}
+              panOnScroll={false}
+              nodesFocusable={false}
+              edgesFocusable={false}
+              defaultViewport={overview}
+              minZoom={overview.zoom}
+              maxZoom={GRAPH_MAX_ZOOM}
+              onlyRenderVisibleElements={large}
+              preventScrolling
+              zoomOnScroll={false}
+              zoomActivationKeyCode={null}
+              zoomOnPinch
+              zoomOnDoubleClick={false}
+              colorMode="dark"
+            >
+              <GraphNavigation canvasRef={canvasRef} overview={overview} />
+              <Background
+                variant={BackgroundVariant.Dots}
+                gap={24}
+                size={1}
+                color="#615a8e"
+              />
+            </ReactFlow>
+          )}
         </Tooltip.Provider>
       </div>
       {large && (
         <Notice>
           Large proof: only the visible area is drawn, without removing any
-          records. Zoom-out is limited to keep the view responsive. Pan or find
-          a record by its address or ID to explore the rest.
+          records. Pan or find a record by its address or ID to explore the
+          rest.
         </Notice>
       )}
       <div className="proof-graph-legend" aria-label="Graph legend">
@@ -330,9 +368,11 @@ function GraphCanvas({
         ))}
       </div>
       <p className="fine-print">
-        Drag the background to pan; scroll or pinch to zoom. Hover or focus a
-        circle for a preview; click or tap for full details. Arrows point to
-        earlier records or group members; numbers show member order.
+        Drag the background or hold the mouse wheel to pan; scroll or pinch to
+        zoom. Fit graph shows the full history; zoom-out stops at that overview.
+        Hover or focus a circle for a preview; click or tap for full details.
+        Arrows point to earlier records or group members; numbers show member
+        order.
       </p>
     </ReactFlowProvider>
   );

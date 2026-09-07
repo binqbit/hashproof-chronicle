@@ -62,11 +62,16 @@
     radial-gradient(ellipse at 50% 20%, #6053a126, transparent 70%), #100e22;
 }
 .proof-graph-canvas .react-flow {
-  --xy-edge-stroke-default: #a7a2db;
-  --xy-edge-stroke-width-default: 1.8;
-  --xy-edge-label-color-default: #e5e0ff;
-  --xy-edge-label-background-color-default: #302746;
+  --xy-edge-stroke: #d7c8ff;
+  /* Scale normally, compensating only below the 0.75px screen-space floor. */
+  --xy-edge-stroke-width: max(2px, calc(0.75px / var(--proof-graph-zoom, 1)));
+  --xy-edge-label-color: #e5e0ff;
+  --xy-edge-label-background-color: #302746;
   --xy-background-color: transparent;
+}
+.proof-graph-canvas .react-flow__edge-path {
+  stroke-linecap: round;
+  stroke-linejoin: round;
 }
 .proof-graph-canvas .react-flow__attribution {
   background: #191329cc;
@@ -257,7 +262,16 @@
   background: #66518533;
   width: 30px;
   height: 30px;
+  min-width: 30px;
+  min-height: 30px;
+  padding: 0;
+  gap: 0;
+  line-height: 1;
   color: #e1d5ff;
+}
+.proof-popup-close svg {
+  display: block;
+  flex-shrink: 0;
 }
 .proof-popup-close:hover,
 .proof-popup-close:focus-visible {

@@ -283,11 +283,28 @@ are laid out separately on the same canvas, each labelled **History N**.
 Graph construction is iterative. Layout runs in a cancellable Web Worker, with a
 15-second timeout. Components up to 200 nodes / 400 edges use Dagre; larger ones
 use iterative longest-path ranks and linear placement, preserving all nodes and
-edges. React Flow supplies pan, zoom, touch gestures and fit-to-view; only visible
-elements render above 250 nodes. For these large graphs a 0.5 minimum zoom bounds
-mounted node cards, including on initial fit and **Center graph**; the UI explains
-that the viewport shows only part of the graph and offers pan/search. Smaller
-graphs have **Fit graph** to show the full picture. The graph is read-only (no dragging individual
+edges. Connections use cubic Bézier paths with bright strokes and arrowheads toward
+dependencies. Lines scale normally from a 2px width at 100% zoom, with a 0.75px
+minimum on screen: `screen width = max(2 × zoom, 0.75)`. A canvas CSS variable
+compensates for the HTML viewport's zoom only below that minimum. Arrowheads use
+graph-space dimensions and continue to scale independently of the line-width floor.
+React Flow supplies pan, pinch/touch gestures and
+fit-to-view. Wheel zoom is cursor-anchored, uses 2.5× the library's default wheel
+sensitivity and caps each event at a factor of two. A graph-local non-passive
+listener calls the public viewport API; Ctrl/pinch events remain native.
+The wheel stays inside the graph instead of also scrolling the page. Dragging
+the background with the left button or dragging anywhere with the middle button
+pans the view, including when the gesture starts on a node. Only visible
+elements render above 250 nodes. The minimum zoom is calculated from the bounds of
+all layout nodes (including history labels), the canvas size and 20% fit padding.
+It equals the full-graph overview scale, capped at 1.05, rather than a fixed
+percentage. Initial view and **Fit graph** show that overview; wheel/pinch, zoom
+buttons and search cannot zoom out beyond it. Resize recalculates the limit and
+refits an overview, while preserving a zoomed-in view unless the new minimum
+requires a closer scale. Animated fit/search uses linear interpolation to avoid
+temporarily dipping below the limit. Large forests show all nodes in the overview;
+zooming in reduces mounted cards through viewport virtualization.
+The graph is read-only (no dragging individual
 nodes, connecting, reconnecting or deleting). A search focuses an exact PDA or
 canonical hex ID; it does not query the network. Hover/focus opens a compact tooltip
 with shortened identifiers. Click/tap opens a centred dialog with full values.

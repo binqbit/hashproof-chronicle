@@ -300,12 +300,13 @@ const content: Record<DocTopicId, ReactNode> = {
         when that information is saved.
         Click or tap for a centred card with full identifiers and record details;
         close it with its close button or
-        Escape. Drag the background to move around, and scroll, pinch or use the
-        zoom buttons to change scale. “Fit graph” brings the whole picture back
-        into view. To locate a record, enter its address or record ID in the search
-        box above the graph. For large proofs, zoom-out is limited and “Center
-        graph” recentres the view. No records are removed: pan or search to reach
-        the rest.
+        Escape. Drag the background to move around, or hold the mouse wheel and
+        drag anywhere on the graph, including a circle. Turn the wheel to zoom
+        around the cursor; scrolling over the graph does not move the page.
+        You can also pinch or use the zoom buttons. “Fit graph” shows the entire
+        history. Zoom-out stops at that overview, adapting to the graph and your
+        window size. For a large history, zoom in or enter a record's address or
+        record ID in the search box to see it up close. No records are removed.
       </p>
       <GuideNote title="The tree shows only saved information">
         Missing records, unknown Pack members and missing account snapshots are

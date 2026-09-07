@@ -37,8 +37,14 @@ export function AggregatePanel({ disabled, history, run }: Props) {
     ]),
   );
   const hasMembers = /[^\s,]/.test(input);
+  const withinMemberLimit =
+    inputMode !== "files" || fileSelection.ids.length <= 32;
   const canCheck =
-    hasMembers && !busy && !check.pending && !fileSelection.pending;
+    hasMembers &&
+    withinMemberLimit &&
+    !busy &&
+    !check.pending &&
+    !fileSelection.pending;
   const canSubmit = canCheck && !disabled;
   return (
     <section className="panel">

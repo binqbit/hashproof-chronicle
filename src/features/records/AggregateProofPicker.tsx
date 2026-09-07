@@ -18,7 +18,7 @@ export interface AggregateFileSelection {
 }
 const PAGE_SIZE = 50;
 
-/** Local import and explicit selection only. Live checks and signing belong to the parent form. */
+/** Local import and member selection only. Live checks and signing belong to the parent form. */
 export function AggregateProofPicker({
   disabled,
   onChange,
@@ -44,8 +44,9 @@ export function AggregateProofPicker({
     [],
   );
   const locked = disabled || pending;
+  const overLimit = selected.length > 32;
   const choose = (ids: string[]) => {
-    if (locked || ids.length > 32) return;
+    if (locked || (ids.length > 32 && ids.length >= selected.length)) return;
     setSelected(ids);
     onChange({
       ids,
@@ -93,14 +94,24 @@ export function AggregateProofPicker({
             abort.signal.throwIfAborted();
             if (!loaded.length)
               throw new Error("These files contain no records to select.");
+            const ids = loaded.map((record) => record.id);
             setRecords(loaded);
+            setSelected(ids);
             setPartial(!result.inspection.complete);
+            onChange({
+              ids,
+              history: loaded.map((record) => record.entry),
+              pending: false,
+              revision,
+            });
           } catch (caught) {
-            if (!abort.signal.aborted) setError(errorMessage(caught));
+            if (!abort.signal.aborted) {
+              setError(errorMessage(caught));
+              onChange({ ids: [], history: [], pending: false, revision });
+            }
           } finally {
             if (!abort.signal.aborted) {
               setPending(false);
-              onChange({ ids: [], history: [], pending: false, revision });
             }
           }
         }}
@@ -111,9 +122,16 @@ export function AggregateProofPicker({
         <>
           <h3>Choose records for your group</h3>
           <p>
-            {records.length} records loaded. Select up to 32 in the order you
-            want. Older linked records are not added automatically.
+            {records.length} records loaded. All imported records start
+            selected, including older linked records. Uncheck any you do not
+            want and adjust the order.
           </p>
+          {overLimit && (
+            <Notice error>
+              {selected.length} records selected. A group can contain at most
+              32. Uncheck unwanted records or clear the selection to continue.
+            </Notice>
+          )}
           <Notice>
             Use the original network. A saved file does not mean its records are
             still available; check them before creating the group.
@@ -125,16 +143,25 @@ export function AggregateProofPicker({
               before relying on restoration.
             </Notice>
           )}
-          {records.length <= 32 && (
+          <div className="actions">
+            {records.length <= 32 && (
+              <button
+                type="button"
+                disabled={locked}
+                onClick={() => choose(records.map((record) => record.id))}
+              >
+                Select all {records.length}{" "}
+                {records.length === 1 ? "record" : "records"}
+              </button>
+            )}
             <button
               type="button"
-              disabled={locked}
-              onClick={() => choose(records.map((record) => record.id))}
+              disabled={locked || !selected.length}
+              onClick={() => choose([])}
             >
-              Select all {records.length}{" "}
-              {records.length === 1 ? "record" : "records"}
+              Clear selection
             </button>
-          )}
+          </div>
           <ul
             className="aggregate-candidates"
             aria-label="Records from proof files"
@@ -193,11 +220,17 @@ export function AggregateProofPicker({
             </div>
           )}
           <h3>Group order · {selected.length} / 32</h3>
+          {overLimit && (
+            <p>
+              Showing the first 32 selected records. Use the list above to
+              reduce the selection before reordering.
+            </p>
+          )}
           <ol
             className="aggregate-selected"
             aria-label="Selected group members"
           >
-            {selected.map((id, index) => (
+            {selected.slice(0, 32).map((id, index) => (
               <li key={id}>
                 <span className="aggregate-position">{index + 1}</span>
                 <code>{id}</code>
@@ -205,7 +238,7 @@ export function AggregateProofPicker({
                   <button
                     type="button"
                     aria-label={`Move member ${index + 1} up`}
-                    disabled={locked || index === 0}
+                    disabled={locked || overLimit || index === 0}
                     onClick={() => move(index, -1)}
                   >
                     <ArrowUp size={15} />
@@ -213,7 +246,9 @@ export function AggregateProofPicker({
                   <button
                     type="button"
                     aria-label={`Move member ${index + 1} down`}
-                    disabled={locked || index === selected.length - 1}
+                    disabled={
+                      locked || overLimit || index === selected.length - 1
+                    }
                     onClick={() => move(index, 1)}
                   >
                     <ArrowDown size={15} />

@@ -6,7 +6,7 @@ import {
 import { entryId, fingerprint } from "./collect-proof";
 
 /** Adapt validated archive data to the collector, keeping witnesses even on leaf/anchor records.
- * Missing dependencies stay missing; selecting members never implies selecting their ancestors.
+ * Missing dependencies stay missing; changing membership does not discard retained history.
  */
 export function historyFromArchive(input: HashArchive) {
   const archive = parseArchive(input);

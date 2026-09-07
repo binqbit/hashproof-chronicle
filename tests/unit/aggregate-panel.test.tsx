@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   act,
   cleanup,
+  fireEvent,
   render,
   screen,
   waitFor,
@@ -79,7 +80,7 @@ const props = () => ({
   run: vi.fn().mockResolvedValue(undefined),
 });
 
-it("selects only chosen members from a chain while passing its full history to creation", async () => {
+it("selects the whole imported chain by default and retains history when a member is unchecked", async () => {
   const user = userEvent.setup();
   const parent = hashEntry();
   const child = branchEntry(parent);
@@ -91,10 +92,15 @@ it("selects only chosen members from a chain while passing its full history to c
     screen.getByLabelText("Import group proof files"),
     proofFile([child, parent]),
   );
-  expect(button("Create batch + first vote").disabled).toBe(true);
+  expect(button("Create batch + first vote").disabled).toBe(false);
+  expect(
+    screen
+      .getAllByRole("checkbox")
+      .every((checkbox) => (checkbox as HTMLInputElement).checked),
+  ).toBe(true);
   expect(state.check).not.toHaveBeenCalled();
   await user.click(
-    screen.getByRole("checkbox", { name: `Select record ${entryId(child)}` }),
+    screen.getByRole("checkbox", { name: `Select record ${entryId(parent)}` }),
   );
   await user.click(button("Check members & preview — no fee"));
   expect(state.check.mock.calls[0][2]).toBe(entryId(child));
@@ -120,22 +126,29 @@ it("lets users reorder and remove members without typing identifiers", async () 
   await user.upload(screen.getByLabelText("Import group proof files"), [
     proofFile([first]),
     proofFile([second]),
+    proofFile([first]),
   ]);
-  await user.click(
-    screen.getByRole("checkbox", { name: `Select record ${entryId(second)}` }),
-  );
-  await user.click(
-    screen.getByRole("checkbox", { name: `Select record ${entryId(first)}` }),
-  );
+  const selectedList = screen.getByRole("list", {
+    name: "Selected group members",
+  });
+  const original = within(selectedList)
+    .getAllByRole("listitem")
+    .map((row) => within(row).getByText(/^[0-9a-f]{64}$/).textContent!);
+  expect(original).toHaveLength(2);
+  expect(
+    screen
+      .getAllByRole("checkbox")
+      .every((checkbox) => (checkbox as HTMLInputElement).checked),
+  ).toBe(true);
   await user.click(button("Move member 2 up"));
   const rows = within(
     screen.getByRole("list", { name: "Selected group members" }),
   ).getAllByRole("listitem");
-  expect(rows[0].textContent).toContain(entryId(first));
-  expect(rows[1].textContent).toContain(entryId(second));
+  expect(rows[0].textContent).toContain(original[1]);
+  expect(rows[1].textContent).toContain(original[0]);
   await user.click(button("Remove member 1"));
   await user.click(button("Check members & preview — no fee"));
-  expect(state.check.mock.calls.at(-1)?.[2]).toBe(entryId(second));
+  expect(state.check.mock.calls.at(-1)?.[2]).toBe(original[0]);
   await user.click(button("Remove member 1"));
   expect(button("Create batch + first vote").disabled).toBe(true);
 });
@@ -146,7 +159,7 @@ it("clears old selections immediately and ignores a stale replacement file read"
   render(<AggregatePanel {...props()} />);
   const input = screen.getByLabelText("Import group proof files");
   await user.upload(input, proofFile([entry]));
-  await user.click(button("Select all 1 record"));
+  expect(button("Create batch + first vote").disabled).toBe(false);
   await user.click(button("Check members & preview — no fee"));
   const slow = proofFile([entry]);
   let finish!: (value: string) => void;
@@ -171,7 +184,8 @@ it("clears old selections immediately and ignores a stale replacement file read"
       name: `Select record ${entryId(hashEntry(2))}`,
     }),
   ).toBeTruthy();
-  expect(button("Create batch + first vote").disabled).toBe(true);
+  expect((screen.getByRole("checkbox") as HTMLInputElement).checked).toBe(true);
+  expect(button("Create batch + first vote").disabled).toBe(false);
 });
 
 it("does not reuse old members after failed imports and respects the transaction lock", async () => {
@@ -180,7 +194,6 @@ it("does not reuse old members after failed imports and respects the transaction
   const view = render(<AggregatePanel {...p} />);
   const file = proofFile([hashEntry()]);
   await user.upload(screen.getByLabelText("Import group proof files"), file);
-  await user.click(button("Select all 1 record"));
   state.busy = true;
   view.rerender(<AggregatePanel {...p} />);
   expect(
@@ -200,4 +213,55 @@ it("does not reuse old members after failed imports and respects the transaction
   );
   expect(screen.queryByRole("checkbox")).toBeNull();
   expect(button("Create batch + first vote").disabled).toBe(true);
+});
+
+it("selects all imported records but requires reducing to 32 before checking or submitting", async () => {
+  const user = userEvent.setup();
+  const p = props();
+  render(<AggregatePanel {...p} />);
+  await user.upload(
+    screen.getByLabelText("Import group proof files"),
+    proofFile(Array.from({ length: 34 }, (_, index) => hashEntry(index + 1))),
+  );
+  expect(screen.getAllByRole("checkbox", { checked: true })).toHaveLength(34);
+  expect(screen.getByRole("alert").textContent).toContain(
+    "34 records selected",
+  );
+  expect(button("Check members & preview — no fee").disabled).toBe(true);
+  expect(button("Create batch + first vote").disabled).toBe(true);
+  fireEvent.submit(button("Create batch + first vote").closest("form")!);
+  expect(p.run).not.toHaveBeenCalled();
+  expect(button("Move member 32 down").disabled).toBe(true);
+  await user.click(screen.getAllByRole("checkbox")[33]);
+  expect(screen.getAllByRole("checkbox", { checked: true })).toHaveLength(33);
+  expect(button("Create batch + first vote").disabled).toBe(true);
+  expect(button("Check members & preview — no fee").disabled).toBe(true);
+  await user.click(screen.getAllByRole("checkbox")[32]);
+  expect(screen.getAllByRole("checkbox", { checked: true })).toHaveLength(32);
+  expect(button("Create batch + first vote").disabled).toBe(false);
+  await user.click(button("Check members & preview — no fee"));
+  expect(state.check.mock.calls.at(-1)?.[2].split("\n")).toHaveLength(32);
+  await user.click(button("Clear selection"));
+  expect(button("Create batch + first vote").disabled).toBe(true);
+});
+
+it("preselects records beyond the first page and can clear a large imported selection", async () => {
+  const user = userEvent.setup();
+  render(<AggregatePanel {...props()} />);
+  await user.upload(
+    screen.getByLabelText("Import group proof files"),
+    proofFile(Array.from({ length: 51 }, (_, index) => hashEntry(index + 1))),
+  );
+  expect(screen.getAllByRole("checkbox", { checked: true })).toHaveLength(50);
+  expect(
+    within(
+      screen.getByRole("list", { name: "Selected group members" }),
+    ).getAllByRole("listitem"),
+  ).toHaveLength(32);
+  await user.click(button("Next records"));
+  expect(screen.getAllByRole("checkbox", { checked: true })).toHaveLength(1);
+  await user.click(button("Clear selection"));
+  expect(screen.queryAllByRole("checkbox", { checked: true })).toHaveLength(0);
+  await user.click(screen.getByRole("checkbox"));
+  expect(button("Create batch + first vote").disabled).toBe(false);
 });

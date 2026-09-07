@@ -192,9 +192,11 @@ const content: Record<DocTopicId, ReactNode> = {
       <h2>Group records with Batch or Pack</h2>
       <p>
         Open Batch / Pack and choose your saved proof files, including combined
-        files from Proofs. Tick the records you want in the group, then use the
-        arrows to set their order. Older linked records are not selected for
-        you. You can also choose “Enter IDs manually” if you prefer.
+        files from Proofs. All records from the files are selected automatically,
+        including older linked records. Uncheck any you do not want, then use
+        the arrows to set their order. A group can contain at most 32 records;
+        if more are selected, remove the extras before continuing. You can also
+        choose “Enter IDs manually” if you prefer.
       </p>
       <p>
         Use the original network and check the preview before creating the

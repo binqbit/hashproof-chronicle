@@ -317,19 +317,14 @@ test("imports Batch and Pack members from proof files without typing IDs", async
   const check = page.getByRole("button", {
     name: "Check members & preview — no fee",
   });
-  await expect(check).toBeDisabled();
+  await expect(check).toBeEnabled();
+  await expect(page.getByRole("checkbox", { checked: true })).toHaveCount(2);
+  await expect(
+    page.getByRole("checkbox", { name: `Select record ${canonical}`, exact: true }),
+  ).toBeChecked();
   await page
     .getByRole("checkbox", { name: `Select record ${otherId}`, exact: true })
-    .check();
-  await page
-    .getByRole("checkbox", { name: `Select record ${canonical}`, exact: true })
-    .check();
-  await page
-    .getByRole("button", { name: "Move member 2 up", exact: true })
-    .click();
-  await page
-    .getByRole("button", { name: "Remove member 2", exact: true })
-    .click();
+    .uncheck();
   const members = page
     .getByRole("list", { name: "Selected group members" })
     .getByRole("listitem");
@@ -365,10 +360,10 @@ test("imports Batch and Pack members from proof files without typing IDs", async
     ),
   });
   await expect(page.getByText("New pack PDA", { exact: true })).toHaveCount(0);
-  await expect(check).toBeDisabled();
-  await page
-    .getByRole("checkbox", { name: `Select record ${canonical}`, exact: true })
-    .check();
+  await expect(check).toBeEnabled();
+  await expect(
+    page.getByRole("checkbox", { name: `Select record ${canonical}`, exact: true }),
+  ).toBeChecked();
   await check.click();
   await expect(page.getByRole("alert")).toContainText(
     "no longer matches the imported history",

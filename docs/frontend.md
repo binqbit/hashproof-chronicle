@@ -111,11 +111,15 @@ checks reject already occupied result records and repeat before submission.
 The UI limits an aggregate to 32 members; this does not guarantee it fits a transaction.
 
 Batch / Pack opens in **Proof files** mode. Choose one or more proof exports or
-SDK archives together, select records explicitly, and reorder them with the arrow
-buttons. Dependencies are retained as history, not automatically added as group
-members. Choosing files again replaces the selection and invalidates its preview;
+SDK archives together: all imported records are selected by default, including
+older linked records. Uncheck unwanted members and reorder the rest with the arrow
+buttons. Deselected records are still retained as history. If more than 32 records
+are selected, checking and creation are disabled until the selection is reduced;
+no records are silently excluded. **Clear selection** deselects everything.
+Choosing files again replaces the selection and invalidates its preview;
 failed or superseded reads cannot reuse the old members. Import is local and uses
-the same file/count limits as Proofs. Large record lists are paginated.
+the same file/count limits as Proofs. Large record lists are paginated; the order
+preview shows up to 32 selected records and reordering is disabled above that limit.
 Legacy exports must match the selected program/RPC; archives and plain arrays do
 not identify a network, so choose their original network yourself. Selected file
 records must match current timestamps and sources, checked both in the preview

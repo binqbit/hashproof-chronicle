@@ -13,7 +13,11 @@
     "sync:idl": "node scripts/sync-contract.cjs idl",
     "sync:contract": "node scripts/sync-contract.cjs all",
     "check:contract": "node scripts/sync-contract.cjs check",
-    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit"
+    "typecheck": "tsc -p tsconfig.app.json --noEmit && tsc -p tsconfig.node.json --noEmit",
+    "test": "npm run check:contract && tsc -p tsconfig.tests.json --noEmit && npm run test:scripts && vitest run",
+    "test:scripts": "node --test scripts/tests/*.test.cjs",
+    "test:e2e": "playwright test",
+    "test:localnet": "vitest run --config vitest.localnet.config.ts"
   },
   "dependencies": {
     "@coral-xyz/anchor": "0.31.1",

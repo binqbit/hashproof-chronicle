@@ -27,6 +27,9 @@ export function BranchPanel({ disabled, selected, history, run }: Props) {
       takeVote,
     ]),
   );
+  const hasInputs = Boolean(parent.trim() && payload.trim());
+  const canCheck = hasInputs && !busy && !digest.hashing && !check.pending;
+  const canSubmit = canCheck && !disabled;
   return (
     <section className="panel">
       <h2>Create a branch</h2>
@@ -38,7 +41,7 @@ export function BranchPanel({ disabled, selected, history, run }: Props) {
       <form
         onSubmit={(event) => {
           event.preventDefault();
-          if (disabled || digest.hashing) return;
+          if (!canSubmit) return;
           setError("");
           try {
             const bytes = hashInput(payload);
@@ -104,10 +107,9 @@ export function BranchPanel({ disabled, selected, history, run }: Props) {
         {check.error && <Notice error>{check.error}</Notice>}
         <button
           type="button"
-          disabled={
-            busy || digest.hashing || check.pending || !parent || !payload
-          }
-          onClick={() =>
+          disabled={!canCheck}
+          onClick={() => {
+            if (!canCheck) return;
             void check.run(() =>
               checkBranch(
                 client,
@@ -116,8 +118,8 @@ export function BranchPanel({ disabled, selected, history, run }: Props) {
                 takeVote,
                 wallet?.publicKey,
               ),
-            )
-          }
+            );
+          }}
         >
           {check.pending ? "Checking…" : "Check parent & preview — no fee"}
         </button>
@@ -141,10 +143,7 @@ export function BranchPanel({ disabled, selected, history, run }: Props) {
             </p>
           </div>
         )}
-        <button
-          className="primary"
-          disabled={disabled || digest.hashing || !parent || !payload}
-        >
+        <button className="primary" disabled={!canSubmit}>
           Create branch + first vote
         </button>
       </form>

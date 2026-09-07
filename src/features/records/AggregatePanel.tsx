@@ -16,6 +16,9 @@ export function AggregatePanel({ disabled, history, run }: Props) {
   const check = useCheck<Awaited<ReturnType<typeof checkAggregate>>>(
     JSON.stringify([network.endpoint, kind, members]),
   );
+  const hasMembers = /[^\s,]/.test(members);
+  const canCheck = hasMembers && !busy && !check.pending;
+  const canSubmit = canCheck && !disabled;
   return (
     <section className="panel">
       <h2>Combine records</h2>
@@ -26,6 +29,7 @@ export function AggregatePanel({ disabled, history, run }: Props) {
       <form
         onSubmit={(event) => {
           event.preventDefault();
+          if (!canSubmit) return;
           void run(`Create ${kind}`, async (signingClient) => {
             const result = await checkAggregate(signingClient, kind, members);
             return operations.aggregate(
@@ -78,10 +82,11 @@ export function AggregatePanel({ disabled, history, run }: Props) {
         {check.error && <Notice error>{check.error}</Notice>}
         <button
           type="button"
-          disabled={busy || check.pending || !members}
-          onClick={() =>
-            void check.run(() => checkAggregate(client, kind, members))
-          }
+          disabled={!canCheck}
+          onClick={() => {
+            if (canCheck)
+              void check.run(() => checkAggregate(client, kind, members));
+          }}
         >
           {check.pending ? "Checking…" : "Check members & preview — no fee"}
         </button>
@@ -107,7 +112,7 @@ export function AggregatePanel({ disabled, history, run }: Props) {
             </p>
           </div>
         )}
-        <button className="primary" disabled={disabled}>
+        <button className="primary" disabled={!canSubmit}>
           Create {kind} + first vote
         </button>
       </form>

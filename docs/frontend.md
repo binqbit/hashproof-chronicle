@@ -78,6 +78,13 @@ initiating control without changing the current network or history.
 | Proofs       | Select several JSON archives or legacy proof files, merge matching nodes locally, review missing history, and download one SDK archive. No wallet or RPC required. |
 
 A raw file hash, a canonical record ID and a Solana PDA are different values.
+Operation buttons require their mandatory inputs; empty or whitespace-only
+fields do not enable checks or submissions. Batch / Pack also treats a list of
+only commas/whitespace as empty. Clearing an input disables its actions again.
+Form handlers enforce the same conditions, including submission through Enter.
+These presence checks do not replace format validation or assert on-chain
+availability.
+
 Timestamp and Branch share incremental, local SHA-256 hashing with progress and
 cancellation. File contents are not uploaded. While hashing, dependent actions
 are disabled; switching operation tabs cancels the hash job. Opening Docs keeps
@@ -155,6 +162,9 @@ Submission requires a successful preflight for the current inputs, mode, network
 and wallet, and repeats it immediately before sending. Editing any of these
 invalidates the preview. Preflight is not a simulation or proof of transaction
 success: RPC state may change, and rent, fees and runtime conditions still apply.
+Selecting a replacement Restore file clears the previous JSON and preflight
+immediately. Format loading stays disabled during the file read, and failed
+imports cannot reuse an earlier proof. Manual edits supersede pending file reads.
 
 Proof-only mode is the default and still pays transaction fees. Materialization
 requests every non-anchor entry with parameters; this UI does not select an

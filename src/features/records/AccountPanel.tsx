@@ -8,6 +8,7 @@ import { errorMessage } from "../workspace/values";
 export function AccountPanel({ disabled, run }: Props) {
   const [target, setTarget] = useState("");
   const [error, setError] = useState("");
+  const canSubmit = !disabled && Boolean(target.trim());
   return (
     <section className="panel">
       <h2>Commit an account snapshot</h2>
@@ -18,6 +19,7 @@ export function AccountPanel({ disabled, run }: Props) {
       <form
         onSubmit={(event) => {
           event.preventDefault();
+          if (!canSubmit) return;
           setError("");
           try {
             const address = accountPublicKey(target.trim());
@@ -50,7 +52,7 @@ export function AccountPanel({ disabled, run }: Props) {
           capture fail.
         </Notice>
         {error && <Notice error>{error}</Notice>}
-        <button className="primary" disabled={disabled}>
+        <button className="primary" disabled={!canSubmit}>
           Commit snapshot + first vote
         </button>
       </form>

@@ -75,6 +75,74 @@ async function rpc(page: Page, accountData?: string, fail = false) {
   });
 }
 
+test("disables empty operation inputs and re-enables checks when data is entered", async ({
+  page,
+}) => {
+  await rpc(page);
+  await page.goto("/");
+  const tabs = page.getByRole("navigation", { name: "Record operations" });
+  await expect(
+    page.getByRole("button", { name: "Look up", exact: true }),
+  ).toBeDisabled();
+  await page.getByLabel("Canonical ID or account PDA").fill("   ");
+  await page.getByLabel("Canonical ID or account PDA").press("Enter");
+  await expect(page.getByRole("alert")).toHaveCount(0);
+  await page.getByLabel("Canonical ID or account PDA").fill(canonical);
+  await expect(
+    page.getByRole("button", { name: "Look up", exact: true }),
+  ).toBeEnabled();
+  await tabs.getByRole("button", { name: "Branch", exact: true }).click();
+  await page.getByLabel("Parent canonical ID or PDA").fill("   ");
+  await page.getByLabel("New payload / file digest").fill("ab".repeat(32));
+  await expect(
+    page.getByRole("button", { name: "Check parent & preview — no fee" }),
+  ).toBeDisabled();
+  await page.getByLabel("Parent canonical ID or PDA").fill(canonical);
+  await expect(
+    page.getByRole("button", { name: "Check parent & preview — no fee" }),
+  ).toBeEnabled();
+  await tabs.getByRole("button", { name: "Batch / Pack", exact: true }).click();
+  for (const mode of [
+    "Batch — stores ordered member IDs",
+    "Pack — digest only",
+  ]) {
+    await page.getByRole("combobox", { name: "Aggregate mode" }).click();
+    await page.getByRole("option", { name: mode, exact: true }).click();
+    await page.getByLabel("Ordered canonical IDs or PDAs").fill(" ,\n , ");
+    await expect(
+      page.getByRole("button", { name: "Check members & preview — no fee" }),
+    ).toBeDisabled();
+    await page.getByLabel("Ordered canonical IDs or PDAs").fill(canonical);
+    await expect(
+      page.getByRole("button", { name: "Check members & preview — no fee" }),
+    ).toBeEnabled();
+  }
+  await tabs.getByRole("button", { name: "Restore", exact: true }).click();
+  await page.getByLabel("Proof chain JSON").fill(" \n ");
+  await expect(
+    page.getByRole("button", { name: "Check format & load history" }),
+  ).toBeDisabled();
+  await page
+    .getByLabel("Proof chain JSON")
+    .fill(
+      JSON.stringify([
+        {
+          hash: payload.toString("hex"),
+          source: { kind: "hash" },
+          createdAt: "100",
+        },
+      ]),
+    );
+  await expect(
+    page.getByRole("button", { name: "Check format & load history" }),
+  ).toBeEnabled();
+  await page.getByLabel("Proof chain JSON").fill("");
+  await expect(
+    page.getByRole("button", { name: "Check format & load history" }),
+  ).toBeDisabled();
+  await expect(page.getByRole("alert")).toHaveCount(0);
+});
+
 test("accepts a PDA in Inspect and previews branches and mixed aggregate members without a wallet", async ({
   page,
 }, testInfo) => {

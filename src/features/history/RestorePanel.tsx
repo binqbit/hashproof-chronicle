@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { OperationProps as Props } from "../workspace/operation-types";
 import * as operations from "../workspace/operations";
 import type { RestoreProofInput } from "../../contract/sdk";
@@ -21,11 +21,18 @@ export function RestorePanel({
   const { network, busy } = useNetwork();
   const [input, setInput] = useState("");
   const [fileName, setFileName] = useState("");
+  const [importing, setImporting] = useState(false);
   const [preview, setPreview] = useState<RestoreProofInput[] | null>(null);
   const [create, setCreate] = useState(false);
   const [error, setError] = useState("");
   const { client, wallet } = useContract();
   const importRequest = useRef(0);
+  useEffect(
+    () => () => {
+      importRequest.current++;
+    },
+    [],
+  );
   const check = useCheck<RestoreCheck>(
     JSON.stringify([
       input,
@@ -39,6 +46,10 @@ export function RestorePanel({
       programId: PROGRAM_ID.toBase58(),
       rpc: network.endpoint,
     });
+  const canParse = Boolean(input.trim()) && !busy && !importing;
+  const canCheck = canParse && Boolean(preview) && !check.pending;
+  const canSubmit =
+    canCheck && !disabled && Boolean(check.value && !check.value.errors.length);
   return (
     <section className="panel">
       <h2>Restore historical records</h2>
@@ -55,6 +66,8 @@ export function RestorePanel({
         disabled={busy}
         onSelect={async (file) => {
           const request = ++importRequest.current;
+          setImporting(true);
+          setInput("");
           setPreview(null);
           setFileName("");
           setError("");
@@ -69,6 +82,8 @@ export function RestorePanel({
           } catch (caught) {
             if (request === importRequest.current)
               setError(errorMessage(caught));
+          } finally {
+            if (request === importRequest.current) setImporting(false);
           }
         }}
       />
@@ -84,6 +99,7 @@ export function RestorePanel({
             value={input}
             onChange={(event) => {
               importRequest.current++;
+              setImporting(false);
               setInput(event.target.value);
               setFileName("");
               setPreview(null);
@@ -94,8 +110,9 @@ export function RestorePanel({
         )}
       </Field>
       <button
-        disabled={!input || busy}
+        disabled={!canParse}
         onClick={() => {
+          if (!canParse) return;
           setError("");
           setPreview(null);
           try {
@@ -107,7 +124,7 @@ export function RestorePanel({
           }
         }}
       >
-        Check format & load history
+        {importing ? "Reading proof file…" : "Check format & load history"}
       </button>
       {preview && (
         <>
@@ -139,12 +156,13 @@ export function RestorePanel({
           </Notice>
           <button
             type="button"
-            disabled={busy || check.pending}
-            onClick={() =>
+            disabled={!canCheck}
+            onClick={() => {
+              if (!canCheck) return;
               void check.run(() =>
                 checkRestore(client, parse(), create, wallet?.publicKey),
-              )
-            }
+              );
+            }}
           >
             {check.pending
               ? "Checking proof and accounts…"
@@ -183,13 +201,9 @@ export function RestorePanel({
           )}
           <button
             className="primary"
-            disabled={
-              disabled ||
-              check.pending ||
-              !check.value ||
-              check.value.errors.length > 0
-            }
+            disabled={!canSubmit}
             onClick={() => {
+              if (!canSubmit) return;
               setError("");
               try {
                 const proof = parse();

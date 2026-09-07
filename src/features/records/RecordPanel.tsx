@@ -41,6 +41,7 @@ export function RecordPanel({
   const lookup = useCheck<Awaited<ReturnType<typeof resolveRecord>>>(
     `${network.endpoint}:${input}`,
   );
+  const canLookup = Boolean(input.trim()) && !lookup.pending;
   const record = useQuery({
     queryKey: ["record", network.endpoint, selected],
     queryFn: async () => (await resolveRecord(client, selected)).account,
@@ -70,6 +71,7 @@ export function RecordPanel({
         className="lookup"
         onSubmit={async (event) => {
           event.preventDefault();
+          if (!canLookup) return;
           setError("");
           setWithdrawConfirmed(false);
           const resolved = await lookup.run(() => resolveRecord(client, input));
@@ -96,7 +98,7 @@ export function RecordPanel({
             />
           )}
         </Field>
-        <button disabled={lookup.pending}>
+        <button disabled={!canLookup}>
           {lookup.pending ? "Looking up…" : "Look up"}
         </button>
       </form>

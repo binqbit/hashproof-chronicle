@@ -32,7 +32,7 @@ export function RegisterPanel({
   }, [raw]);
   const submit = (event: FormEvent) => {
     event.preventDefault();
-    if (disabled || digest.hashing) return;
+    if (disabled || digest.hashing || !identity) return;
     setError("");
     try {
       onRegister(hashInput(raw));

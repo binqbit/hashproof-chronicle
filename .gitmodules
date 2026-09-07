@@ -1,0 +1,3 @@
+[submodule "hash-timestamp"]
+	path = hash-timestamp
+	url = git@github.com:binqbit/hash-timestamp.git

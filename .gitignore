@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Local infrastructure data and private keys (never build inputs).
+/accounts/*
+!/accounts/README.md
+/config/
+/test-ledger/
+/.env
+/playwright-report/
+/test-results/

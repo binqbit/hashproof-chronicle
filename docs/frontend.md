@@ -205,6 +205,14 @@ encoding. Application operations retain the same parent/member snapshots used by
 the SDK to build instructions and collect exportable history. UI components do
 not reimplement protocol formulas or make fake wallet providers for reads.
 
+Creation receipts also retain the SDK's one-node `archive`; register/branch now
+return `{ signature, archive }`. The SDK's versioned node graph and automatic
+restore planner are documented in the [archive guide](../hash-timestamp/docs/archive.md).
+The existing UI proof import/export remains its separate legacy proof format;
+an SDK archive is not accepted there yet. A confirmed `ArchiveCaptureError` keeps
+the transaction receipt visible with a warning; uncertain submissions retain the
+signature in the error and must be checked before retrying.
+
 Browser adaptation is deliberately narrow: Buffer support, a synchronous
 SHA-256 `crypto` adapter, and a generated missing-`rentEpoch` guard required by
 modern web3.js types. The guard rejects incomplete snapshots; it does not invent

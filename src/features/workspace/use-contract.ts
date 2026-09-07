@@ -8,8 +8,13 @@ import {
 } from "../../contract/client";
 import { useNetwork } from "../../contract/network";
 import type { HashTimestampClient } from "../../contract/sdk";
+import {
+  ArchiveCaptureError,
+  canonicalHashId,
+  decodeHashSource,
+} from "../../contract/sdk";
 import type { Receipt } from "./operations";
-import { errorMessage } from "./values";
+import { errorMessage, hex } from "./values";
 
 export function useContract() {
   const { connection } = useConnection();
@@ -33,7 +38,7 @@ export function useTransaction(onSuccess: (receipt: Receipt) => void) {
   const [pendingLabel, setPendingLabel] = useState("");
   const run = async (
     label: string,
-    operation: (client: HashTimestampClient) => Promise<Receipt>,
+    operation: (client: HashTimestampClient) => Promise<Receipt>
   ) => {
     setError("");
     if (!wallet) {
@@ -45,7 +50,7 @@ export function useTransaction(onSuccess: (receipt: Receipt) => void) {
     try {
       if (!(await connection.getAccountInfo(PROGRAM_ID))?.executable)
         throw new Error(
-          `The configured program is not deployed on ${network.label}.`,
+          `The configured program is not deployed on ${network.label}.`
         );
       const receipt = await operation(createSigningClient(connection, wallet));
       onSuccess(receipt);
@@ -53,8 +58,33 @@ export function useTransaction(onSuccess: (receipt: Receipt) => void) {
         predicate: (query) => query.queryKey.includes(network.endpoint),
       });
     } catch (caught) {
+      if (
+        caught instanceof ArchiveCaptureError &&
+        caught.status === "confirmed"
+      ) {
+        onSuccess({
+          signature: caught.signature,
+          ids: [
+            hex(
+              canonicalHashId(
+                caught.pendingNode.hash,
+                decodeHashSource(caught.pendingNode.source)
+              )
+            ),
+          ],
+          warning: `Transaction confirmed, but archive capture failed. Do not repeat creation. ${errorMessage(
+            caught.cause
+          )}`,
+        });
+        void queries.invalidateQueries({
+          predicate: (query) => query.queryKey.includes(network.endpoint),
+        });
+        return;
+      }
       setError(
-        `${errorMessage(caught)} If confirmation timed out, check the wallet/explorer before retrying; the transaction may have landed.`,
+        `${errorMessage(
+          caught
+        )} If confirmation timed out, check the wallet/explorer before retrying; the transaction may have landed.`
       );
     } finally {
       setPendingLabel("");

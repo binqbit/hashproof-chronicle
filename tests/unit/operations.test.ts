@@ -5,7 +5,7 @@ import {
   BorshInstructionCoder,
   BorshAccountsCoder,
 } from "@coral-xyz/anchor";
-import { Connection, Keypair, Transaction } from "@solana/web3.js";
+import { Connection, Keypair, PublicKey, Transaction } from "@solana/web3.js";
 import { createSigningClient } from "../../src/contract/client";
 import {
   IDL,
@@ -36,7 +36,7 @@ const childId = hex(canonicalHashId(childHash, 2));
 const account = (
   hash = raw,
   source: HashAccountData["source"] = { hash: {} },
-  time = 100,
+  time = 100
 ): HashAccountData => ({
   hash: [...hash],
   source,
@@ -54,7 +54,7 @@ const child = () =>
         generation: new BN(1),
       },
     },
-    101,
+    101
   );
 
 function fixture() {
@@ -66,9 +66,13 @@ function fixture() {
   };
   const client = createSigningClient(
     new Connection("http://127.0.0.1:8899"),
-    wallet,
+    wallet
   );
   const records = new Map<string, HashAccountData>();
+  vi.spyOn(client.connection, "confirmTransaction").mockResolvedValue({
+    context: { slot: 100 },
+    value: { err: null },
+  });
   vi.spyOn(client.connection, "getAccountInfo").mockImplementation(
     async (address) => {
       const value = records.get(address.toBase58());
@@ -80,17 +84,17 @@ function fixture() {
             rentEpoch: 0,
             data: await new BorshAccountsCoder(IDL).encode(
               "hashAccount",
-              value,
+              value
             ),
           }
         : null;
-    },
+    }
   );
   const sent: Transaction[] = [];
   const fetch = vi
     .spyOn(client.program.account.hashAccount, "fetchNullable")
     .mockImplementation(
-      async (address) => records.get(String(address)) ?? null,
+      async (address) => records.get(String(address)) ?? null
     );
   const send = vi
     .spyOn(client.program.provider as AnchorProvider, "sendAndConfirm")
@@ -100,8 +104,13 @@ function fixture() {
       sent.push(tx);
       return "confirmed-signature";
     });
-  const put = (id: string, value: HashAccountData) =>
-    records.set(client.hashPda(id).toBase58(), value);
+  const put = (id: string, value: HashAccountData) => {
+    const [, bump] = PublicKey.findProgramAddressSync(
+      [Buffer.from("hash"), Buffer.from(id, "hex")],
+      client.programId
+    );
+    records.set(client.hashPda(id).toBase58(), { ...value, bump });
+  };
   const decoded = () =>
     new BorshInstructionCoder(IDL).decode(sent.at(-1)!.instructions[0].data);
   return { client, records, sent, fetch, send, put, decoded, wallet };
@@ -114,16 +123,20 @@ describe("Application operations using the actual SDK + Anchor IDL", () => {
     const receipt = await register(f.client, raw);
     expect(receipt.signature).toBe("confirmed-signature");
     expect(receipt.ids).toEqual([parentId]);
+    expect(Object.keys(receipt.archive!.nodes)).toEqual([
+      f.client.hashPda(parentId).toBase58(),
+    ]);
     expect(receipt.proof?.map(entryId)).toEqual([parentId]);
     expect(f.decoded()).toEqual({ name: "register", data: { hash: [...raw] } });
     expect(
       f.sent[0].instructions[0].keys[0].pubkey.equals(
-        f.client.hashPda(parentId),
-      ),
+        f.client.hashPda(parentId)
+      )
     ).toBe(true);
   });
   it("preserves a confirmed receipt when the follow-up RPC read fails", async () => {
     const f = fixture();
+    f.put(parentId, account());
     f.fetch.mockRejectedValue(new Error("RPC offline"));
     const receipt = await register(f.client, raw);
     expect(receipt.signature).toBe("confirmed-signature");
@@ -149,7 +162,7 @@ describe("Application operations using the actual SDK + Anchor IDL", () => {
       data: { payload: [...payload], takeVote: true },
     });
     const parentReads = f.fetch.mock.calls.filter(
-      ([address]) => String(address) === f.client.hashPda(parentId).toBase58(),
+      ([address]) => String(address) === f.client.hashPda(parentId).toBase58()
     );
     expect(parentReads).toHaveLength(1);
   });
@@ -185,19 +198,19 @@ describe("Application operations using the actual SDK + Anchor IDL", () => {
     const restored = await restore(
       f.client,
       proof as RestoreProofInput[],
-      true,
+      true
     );
     expect(restored.ids).toEqual([parentId]);
     expect(f.sent[1].instructions[0].keys).toHaveLength(5);
     expect(
       f.sent[1].instructions[0].keys[3].pubkey.equals(
-        f.client.hashPda(parentId),
-      ),
+        f.client.hashPda(parentId)
+      )
     ).toBe(true);
     expect(
       f.sent[1].instructions[0].keys[4].pubkey.equals(
-        f.client.votePda(parentId, f.wallet.publicKey),
-      ),
+        f.client.votePda(parentId, f.wallet.publicKey)
+      )
     ).toBe(true);
   });
 });

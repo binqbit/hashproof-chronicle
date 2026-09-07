@@ -14,6 +14,7 @@ import type {
   HashAccountData,
   HashBytes,
   RestoreProofInput,
+  HashArchive,
 } from "../../contract/sdk";
 import {
   collectProof,
@@ -28,6 +29,7 @@ export interface Receipt {
   signature: string;
   ids: string[];
   proof?: RestoreProofInput[];
+  archive?: HashArchive;
   warning?: string;
 }
 
@@ -35,7 +37,7 @@ export interface Receipt {
 class SnapshotClient extends HashTimestampClient {
   constructor(
     client: HashTimestampClient,
-    private readonly snapshots: Map<string, HashAccountData>,
+    private readonly snapshots: Map<string, HashAccountData>
   ) {
     super(client.program);
   }
@@ -52,7 +54,7 @@ async function snapshots(client: HashTimestampClient, ids: string[]) {
       const record = await client.fetchHashAccount(id);
       if (!record) throw new Error(`Record not found: ${id}`);
       return [id, record] as const;
-    }),
+    })
   );
   return new SnapshotClient(client, new Map(records));
 }
@@ -61,7 +63,7 @@ async function snapshots(client: HashTimestampClient, ids: string[]) {
 async function withProof(
   client: HashTimestampClient,
   receipt: Receipt,
-  history: RestoreProofInput[],
+  history: RestoreProofInput[]
 ): Promise<Receipt> {
   try {
     return {
@@ -72,20 +74,22 @@ async function withProof(
     return {
       ...receipt,
       proof: history.length ? history : undefined,
-      warning: `Transaction confirmed. Only partial history was retained; it is not a complete restore proof. ${errorMessage(error)}`,
+      warning: `Transaction confirmed. Only partial history was retained; it is not a complete restore proof. ${errorMessage(
+        error
+      )}`,
     };
   }
 }
 
 export async function register(
   client: HashTimestampClient,
-  hash: Uint8Array,
+  hash: Uint8Array
 ): Promise<Receipt> {
-  const signature = await client.register(hash);
+  const { signature, archive } = await client.register(hash);
   return withProof(
     client,
-    { signature, ids: [hex(deriveGenesisHashId(hash))] },
-    [],
+    { signature, archive, ids: [hex(deriveGenesisHashId(hash))] },
+    []
   );
 }
 
@@ -94,7 +98,7 @@ export async function branch(
   parentId: string,
   payload: Uint8Array,
   takeVote: boolean,
-  history: RestoreProofInput[],
+  history: RestoreProofInput[]
 ): Promise<Receipt> {
   const snapshot = await snapshots(client, [parentId]);
   const parent = recordEntry((await snapshot.fetchHashAccount(parentId))!);
@@ -112,12 +116,16 @@ export async function branch(
         parent.createdAt,
         generationFromSource(parent.source),
         hashSourceKindOf(parent.source),
-        payload,
-      ),
-    ),
+        payload
+      )
+    )
   );
-  const signature = await snapshot.branch(parentId, payload, takeVote);
-  const receipt = { signature, ids: [id] };
+  const { signature, archive } = await snapshot.branch(
+    parentId,
+    payload,
+    takeVote
+  );
+  const receipt = { signature, archive, ids: [id] };
   const retained = parentProof.length ? parentProof : [parent];
   try {
     const child = await client.fetchHashAccount(id);
@@ -131,7 +139,9 @@ export async function branch(
     return {
       ...receipt,
       proof: retained,
-      warning: `Transaction confirmed. Only parent history was retained; the child timestamp is unavailable. ${warning || ""} ${errorMessage(error)}`,
+      warning: `Transaction confirmed. Only parent history was retained; the child timestamp is unavailable. ${
+        warning || ""
+      } ${errorMessage(error)}`,
     };
   }
 }
@@ -140,21 +150,21 @@ export async function aggregate(
   client: HashTimestampClient,
   kind: "batch" | "pack",
   ids: string[],
-  history: RestoreProofInput[],
+  history: RestoreProofInput[]
 ): Promise<Receipt> {
   const snapshot = await snapshots(client, ids);
   const members = await Promise.all(
     ids.map(async (id) =>
-      fingerprint(recordEntry((await snapshot.fetchHashAccount(id))!)),
-    ),
+      fingerprint(recordEntry((await snapshot.fetchHashAccount(id))!))
+    )
   );
   let historyProof: RestoreProofInput[] = [];
   let warning: string | undefined;
   try {
     historyProof = mergeHistory(
       ...(await Promise.all(
-        ids.map((id) => collectProof(snapshot, id, history)),
-      )),
+        ids.map((id) => collectProof(snapshot, id, history))
+      ))
     );
   } catch (error) {
     warning = `Member history not fully available: ${errorMessage(error)}`;
@@ -162,13 +172,17 @@ export async function aggregate(
   const result =
     kind === "batch" ? await snapshot.batch(ids) : await snapshot.pack(ids);
   const id = hex("batchId" in result ? result.batchId : result.packId);
-  const receipt = { signature: result.signature, ids: [id] };
+  const receipt = {
+    signature: result.signature,
+    archive: result.archive,
+    ids: [id],
+  };
   const retained = historyProof.length
     ? historyProof
     : await Promise.all(
         ids.map(async (memberId) =>
-          recordEntry((await snapshot.fetchHashAccount(memberId))!),
-        ),
+          recordEntry((await snapshot.fetchHashAccount(memberId))!)
+        )
       );
   try {
     const record = await client.fetchHashAccount(id);
@@ -182,20 +196,26 @@ export async function aggregate(
     return {
       ...receipt,
       proof: retained,
-      warning: `Transaction confirmed. Only member history was retained; aggregate timestamp is unavailable. ${warning || ""} ${errorMessage(error)}`,
+      warning: `Transaction confirmed. Only member history was retained; aggregate timestamp is unavailable. ${
+        warning || ""
+      } ${errorMessage(error)}`,
     };
   }
 }
 
 export async function accountSnapshot(
   client: HashTimestampClient,
-  target: PublicKey,
+  target: PublicKey
 ): Promise<Receipt> {
   const before = await client.connection.getAccountInfo(target);
   if (!before || before.rentEpoch === undefined)
     throw new Error("Target snapshot is unavailable.");
   const result = await client.hashAccount(target);
-  const receipt = { signature: result.signature, ids: [hex(result.hashId)] };
+  const receipt = {
+    signature: result.signature,
+    archive: result.archive,
+    ids: [hex(result.hashId)],
+  };
   if (
     hex(deriveAccountMetadataHash(target, before)) !== hex(result.metadataHash)
   ) {
@@ -225,7 +245,9 @@ export async function accountSnapshot(
   } catch (error) {
     return {
       ...receipt,
-      warning: `Transaction confirmed. Proof unavailable: ${errorMessage(error)}`,
+      warning: `Transaction confirmed. Proof unavailable: ${errorMessage(
+        error
+      )}`,
     };
   }
 }
@@ -233,13 +255,13 @@ export async function accountSnapshot(
 export async function restore(
   client: HashTimestampClient,
   proof: RestoreProofInput[],
-  createAccounts: boolean,
+  createAccounts: boolean
 ): Promise<Receipt> {
   const checked = await checkRestore(
     client,
     proof,
     createAccounts,
-    client.program.provider.publicKey,
+    client.program.provider.publicKey
   );
   if (checked.errors.length) throw new Error(checked.errors.join(" "));
   const result = await client.restore(proof, { createAccounts });

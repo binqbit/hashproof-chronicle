@@ -26,7 +26,7 @@ test("combines and downloads proof files with RPC unavailable, preserving select
     ]),
   );
   await page.goto("/");
-  await openTool(page, "Proofs");
+  await openTool(page, "Merge proofs");
   await page
     .getByLabel("Add proof JSON files")
     .setInputFiles(
@@ -37,7 +37,7 @@ test("combines and downloads proof files with RPC unavailable, preserving select
       })),
     );
   await openTool(page, "Inspect");
-  await openTool(page, "Proofs");
+  await openTool(page, "Merge proofs");
   await expect(
     page.getByText("2 files selected", { exact: true }),
   ).toBeVisible();

@@ -34,8 +34,9 @@ const content: Record<DocTopicId, ReactNode> = {
       <p>
         Choose a section, then a tool: <strong>Verify</strong> contains Inspect
         and Proof check; <strong>Create</strong> contains Timestamp, Branch,
-        Batch / Pack and Account; <strong>History</strong> contains Proofs for
-        combining saved evidence and Restore for recovering records.
+        Batch / Pack and Account; <strong>History</strong> contains Merge proofs,
+        Proof inspector for exploring connections, and Restore for recovering
+        records.
       </p>
       <ol>
         <li>
@@ -198,8 +199,8 @@ const content: Record<DocTopicId, ReactNode> = {
       <h2>Group records with Batch or Pack</h2>
       <p>
         Open Create → Batch / Pack and choose your saved proof files, including
-        combined files from Proofs. All records from the files are selected
-        automatically, including older linked records. Uncheck any you do not
+        combined files from Merge proofs. All records from the files are
+        selected automatically, including older linked records. Uncheck any you do not
         want, then use the arrows to set their order. A group can contain at most
         32 records; if more are selected, remove the extras before continuing.
         You can also choose “Enter IDs manually” if you prefer.
@@ -284,6 +285,32 @@ const content: Record<DocTopicId, ReactNode> = {
         complete. An unsuccessful check does not prove the file never existed.
         These timestamps are not your device’s file creation dates.
       </GuideNote>
+      <h2>Explore the connections in a proof</h2>
+      <p>
+        Open History → Proof inspector and choose an original or combined proof
+        file. Each independent history appears as a separate graph. Circles are
+        records; arrows point down to earlier records or group members. Branch
+        points to its previous record; Batch and Pack split into their members.
+        Numbers on the connections show member order. A shared record has one
+        circle with several incoming connections.
+      </p>
+      <p>
+        Hover or focus a circle to see its identifiers and saved timestamp.
+        Click or tap for full details; close the card with its close button or
+        Escape. Drag the background to move around, and scroll, pinch or use the
+        zoom buttons to change scale. “Fit graph” brings the whole picture back
+        into view. To locate a record, enter its address or record ID in the search
+        box above the graph. For large proofs, zoom-out is limited and “Center
+        graph” recentres the view. No records are removed: pan or search to reach
+        the rest.
+      </p>
+      <GuideNote title="The tree shows only saved information">
+        Missing records, unknown Pack members and missing account snapshots are
+        marked separately. Missing links may connect histories that appear
+        independent here. This view does not check the network or recover files.
+        Each date belongs to its own record, not to the whole tree. Switching
+        tools clears the inspector; reading this guide keeps it open.
+      </GuideNote>
       <h2>Combine proof files</h2>
       <p>
         Bring saved proof files together into one download. Everything happens
@@ -291,8 +318,9 @@ const content: Record<DocTopicId, ReactNode> = {
       </p>
       <ol>
         <li>
-          <strong>Choose your files.</strong> Open History → Proofs and select at
-          least two saved proof files. You can add more in another selection.
+          <strong>Choose your files.</strong> Open History → Merge proofs and
+          select at least two saved proof files. You can add more in another
+          selection.
         </li>
         <li>
           <strong>Review the list.</strong> Remove any file you do not want to
@@ -318,7 +346,7 @@ const content: Record<DocTopicId, ReactNode> = {
       <p>
         Download your result before reloading, closing the page or switching
         networks. Opening another tab in the workspace or reading this guide
-        keeps your current selection.
+        keeps your Merge proofs selection.
       </p>
       <p>
         You can select up to 32 files, up to 16 MiB each and 32 MiB in total.

@@ -56,7 +56,7 @@ export function ProofsPanel() {
 
   return (
     <section className="panel" aria-labelledby="proofs-heading">
-      <h2 id="proofs-heading">Work with proofs</h2>
+      <h2 id="proofs-heading">Merge proofs</h2>
       <p>
         Combine saved history into one JSON archive. Files are read locally; no
         wallet, RPC or transaction is needed.

@@ -1,6 +1,4 @@
-import { PublicKey } from "@solana/web3.js";
 import {
-  deriveHashPda,
   inspectArchive,
   parseArchive,
   selectArchive,
@@ -12,6 +10,7 @@ import { resolveRecord } from "../../contract/records";
 import { errorMessage, hashInput, hex } from "../workspace/values";
 import { historyFromArchive } from "./archive-history";
 import { assertMatchingHistory } from "./collect-proof";
+import { archiveLinks } from "./archive-links";
 
 export interface FileProofMatch {
   pda: string;
@@ -65,19 +64,10 @@ const MAX_ANCHOR_CHECKS = 32;
 
 /** Candidate discovery only. The SDK, not this reverse index, authenticates the links. */
 function laterRecords(archive: HashArchive, target: string) {
-  const program = new PublicKey(archive.programId);
-  const address = (id: string) => deriveHashPda(program, id).toBase58();
+  const links = archiveLinks(archive.programId);
   const parents = new Map<string, string[]>();
   for (const [pda, node] of Object.entries(archive.nodes)) {
-    const source = node.source;
-    const dependencies =
-      source.kind === "branch"
-        ? [address(source.previousHashId)]
-        : source.kind === "batch"
-          ? source.members.map(address)
-          : source.kind === "pack"
-            ? (node.members ?? [])
-            : [];
+    const dependencies = links(node) ?? [];
     for (const dependency of dependencies) {
       const linked = parents.get(dependency) ?? [];
       linked.push(pda);

@@ -46,14 +46,14 @@ The workspace has two navigation levels: choose a section, then one of its tools
 | ------- | --------------------------------------- |
 | Verify  | Inspect, Proof check                    |
 | Create  | Timestamp, Branch, Batch / Pack, Account |
-| History | Proofs, Restore                         |
+| History | Merge proofs, Proof inspector, Restore  |
 
 **Verify → Inspect** opens by default, including record links and the home link.
 Selecting a different section opens its first tool; clicking the current section
 keeps its selected tool. Inspect actions from other tools also select Verify.
 Both navigation levels are disabled while a transaction is pending. Changing
 tools, within or between sections, keeps the existing form reset/cancellation
-behavior; Proofs keeps its file selection and merged result across these changes.
+behavior; Merge proofs keeps its file selection and merged result across these changes.
 The group definitions and tool type live in `src/features/workspace/navigation.ts`;
 `WorkspaceNavigation.tsx` handles presentation, while `Workspace.tsx` owns the
 active tool and operation state. Navigation does not call the contract.
@@ -96,7 +96,8 @@ initiating control without changing the current network or history.
 | Batch / Pack | Import proof files and select/reorder members, or enter IDs and PDAs manually. Check live records before creating the group. Batch stores IDs; Pack needs retained history. |
 | Account      | Commit the current metadata and data of a Solana account. Save the captured snapshot for historical proof use.                                                                                                                          |
 | Restore      | Import proof JSON, load retained history, then check commitments, dependencies, live state and transaction size before submitting proof-only validation or account recreation.                                                          |
-| Proofs       | Select several JSON archives or legacy proof files, merge matching nodes locally, review missing history, and download one SDK archive. No wallet or RPC required. |
+| Merge proofs | Select several JSON archives or legacy proof files, merge matching nodes locally, review missing history, and download one SDK archive. No wallet or RPC required. |
+| Proof inspector | Draw one original or combined proof as a graph of connected records and independent histories. Hover/focus circles for IDs and timestamps; click/tap for full details. Pan, zoom and search locally; no wallet, RPC or transaction required. |
 | Proof check  | Choose proof JSON and a resource file, find saved file timestamps across versions/groups, then optionally check a matching live record or complete historical path. No wallet or transaction required. |
 
 A raw file hash, a canonical record ID and a Solana PDA are different values.
@@ -136,7 +137,7 @@ are selected, checking and creation are disabled until the selection is reduced;
 no records are silently excluded. **Clear selection** deselects everything.
 Choosing files again replaces the selection and invalidates its preview;
 failed or superseded reads cannot reuse the old members. Import is local and uses
-the same file/count limits as Proofs. Large record lists are paginated; the order
+the same file/count limits as Merge proofs. Large record lists are paginated; the order
 preview shows up to 32 selected records and reordering is disabled above that limit.
 Legacy exports must match the selected program/RPC; archives and plain arrays do
 not identify a network, so choose their original network yourself. Selected file
@@ -167,7 +168,7 @@ Collection follows live ancestors or imported historical entries. It validates
 derived commitments with SDK helpers and stops if history is unavailable. A Pack
 cannot reveal its missing member list. An account's present state cannot replace
 a changed historical snapshot. Large or incomplete histories may need to be
-assembled with the [Proofs tab](#merge-proof-files) or the SDK.
+assembled with [Merge proofs](#merge-proof-files) or the SDK.
 
 Confirmed transaction receipts survive auxiliary proof-collection failures. When
 possible, a partial history export retains captured parent/member fingerprints;
@@ -254,9 +255,63 @@ Changing either file cancels or invalidates pending work and previous results;
 leaving the operation tab or switching networks clears this screen. Opening
 Docs preserves the mounted workspace. A search requires both valid files.
 
+## Inspect proof histories
+
+Open **History → Proof inspector** and choose one JSON proof. Imports reuse
+`readArchiveFiles`: SDK archives and convertible legacy proofs are supported,
+with the existing 16 MiB / 10,000-node archive limits (legacy: 2 MB / 64 entries).
+This is an offline viewer: archives from another program can be read, while plain
+legacy arrays use the configured program ID. No RPC lookup, signing or transaction
+is performed by the inspector. The workspace availability check is independent.
+
+The public SDK validates known commitments, identities and cycles. The UI builds
+weakly connected components of the saved dependency graph, including missing-node
+placeholders. Two branches referencing the same absent parent stay connected.
+Unknown Pack membership does not invent edges; missing Account snapshots are
+reported as missing supporting data, not as a link to the recorded Solana account.
+Components describe known connectivity only: missing data may connect them later.
+
+Within each history, dependencies appear below the records referencing them.
+Branch links to its previous
+record; Batch canonical member IDs are resolved to PDAs; Pack uses its saved PDA
+membership. Protocol member order is shown on numbered edges. Each PDA has one
+circle, with multiple incoming edges for shared records. Disconnected components
+are laid out separately on the same canvas, each labelled **History N**.
+
+Graph construction is iterative. Layout runs in a cancellable Web Worker, with a
+15-second timeout. Components up to 200 nodes / 400 edges use Dagre; larger ones
+use iterative longest-path ranks and linear placement, preserving all nodes and
+edges. React Flow supplies pan, zoom, touch gestures and fit-to-view; only visible
+elements render above 250 nodes. For these large graphs a 0.5 minimum zoom bounds
+mounted node cards, including on initial fit and **Center graph**; the UI explains
+that the viewport shows only part of the graph and offers pan/search. Smaller
+graphs have **Fit graph** to show the full picture. The graph is read-only (no dragging individual
+nodes, connecting, reconnecting or deleting). A search focuses an exact PDA or
+canonical hex ID; it does not query the network. Hover/focus opens a tooltip and
+click/tap opens full details in a dismissible popover. Both use viewport-aware
+portals, so they do not change page layout. Record details show normalized hex
+hashes/IDs, Base58 addresses and the
+record's own exact timestamp. Missing records never receive a guessed timestamp.
+This is a local visualization, not a statement of on-chain existence or readiness
+for Restore. Use **Verify → Proof check** to check a resource file against history.
+
+Changing or clearing the file immediately invalidates prior trees and cancels
+pending reads; an import identity resets the viewport, search and details even when
+the replacement contains the same PDAs. Switching tools/networks clears the
+inspector; opening Docs keeps it mounted. Source files remain unchanged.
+
+`archive-links.ts` reads dependency addresses for both this view and file-proof
+candidate discovery. `proof-graph.ts` owns the presentation graph and components;
+`graph-layout.ts` owns placement via `proof-layout.worker.ts`; the lazy-loaded
+`ProofGraphViewer.tsx` owns canvas interactions, and `ProofNodeDetails.tsx` formats
+record information. `ProofInspectorPanel.tsx` owns file loading and the screen.
+Protocol validation remains in the synchronized SDK. Library integration follows
+the [React Flow custom-node documentation](https://reactflow.dev/learn/customization/custom-nodes)
+and [Dagre layout example](https://reactflow.dev/examples/layout/dagre).
+
 ## Merge proof files
 
-Open **History → Proofs**, select two or more JSON files, and click **Merge files**. Further
+Open **History → Merge proofs**, select two or more JSON files, and click **Merge files**. Further
 selections append files to the list; individual files can be removed. Download
 the result with **Download merged JSON**. Changing the selection invalidates the
 previous result. Clearing the selection cancels an active merge. Switching
@@ -339,7 +394,7 @@ Creation receipts also retain the SDK's one-node `archive`; register/branch now
 return `{ signature, archive }`. The SDK's versioned node graph and automatic
 restore planner are documented in the [archive guide](../hash-timestamp/docs/archive.md).
 Record/receipt proof exports and Restore import use the separate legacy proof
-format. The Proofs tab accepts those exports and SDK archives and writes SDK
+format. Merge proofs accepts those exports and SDK archives and writes SDK
 archives; it does not change the Restore input format. A confirmed `ArchiveCaptureError` keeps
 the transaction receipt visible with a warning; uncertain submissions retain the
 signature in the error and must be checked before retrying.

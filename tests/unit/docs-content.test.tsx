@@ -13,8 +13,16 @@ it("shows where to find each workspace tool in the getting-started guide", () =>
   expect(text).toContain(
     "Create contains Timestamp, Branch, Batch / Pack and Account",
   );
-  expect(text).toContain("History contains Proofs");
+  expect(text).toContain("History contains Merge proofs, Proof inspector");
   expect(text).toContain("Restore for recovering records");
+});
+
+it("explains independent and shared histories without claiming network verification", () => {
+  render(<DocContent topic="proofs" />);
+  const note = screen.getByRole("complementary", { name: "The tree shows only saved information" });
+  expect(note.textContent).toContain("Missing links may connect histories");
+  expect(note.textContent).toContain("does not check the network");
+  expect(note.textContent).toContain("Each date belongs to its own record");
 });
 
 it.each(docTopics.filter((topic) => topic.id !== "developers"))(

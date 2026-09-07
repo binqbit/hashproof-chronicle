@@ -20,6 +20,8 @@
     "test:localnet": "vitest run --config vitest.localnet.config.ts"
   },
   "dependencies": {
+    "@xyflow/react": "12.11.6",
+    "@dagrejs/dagre": "3.1.1",
     "@coral-xyz/anchor": "0.31.1",
     "@hookform/resolvers": "^3.10.0",
     "@radix-ui/react-accordion": "^1.2.11",

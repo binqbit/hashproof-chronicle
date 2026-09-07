@@ -16,6 +16,7 @@ import { BranchPanel } from "../records/BranchPanel";
 import { RestorePanel } from "../history/RestorePanel";
 import { ProofsPanel } from "../history/ProofsPanel";
 import { FileProofPanel } from "../history/FileProofPanel";
+import { ProofInspectorPanel } from "../history/ProofInspectorPanel";
 import { DocsLink } from "../guide/DocsLink";
 import { NetworkPicker } from "../../components/NetworkPicker";
 import { ConfirmationDialog } from "../../components/ConfirmationDialog";
@@ -218,6 +219,7 @@ function NetworkWorkspace() {
             {tab === "aggregate" && <AggregatePanel {...props} />}
             {tab === "account" && <AccountPanel {...props} />}
             {tab === "proof-check" && <FileProofPanel />}
+            {tab === "proof-inspector" && <ProofInspectorPanel />}
             {tab === "restore" && (
               <RestorePanel {...props} onHistory={retain} />
             )}

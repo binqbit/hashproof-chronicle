@@ -3,7 +3,7 @@
 A browser workspace for [Hash Timestamp](hash-timestamp/README.md): hash files
 locally, register commitments on Solana, manage votes, create branches and
 batch/pack aggregates, commit account snapshots, check files against saved proofs,
-merge proof files locally, and restore retained history.
+explore proof trees, merge proof files locally, and restore retained history.
 
 The frontend uses the SDK from the contract submodule, with a small browser
 compatibility layer and synchronized IDL. There is no backend and no file upload.

@@ -35,7 +35,7 @@ it("shows only the tools of the chosen section and keeps the current tool on rep
   for (const [section, expected] of [
     ["Verify", ["Inspect", "Proof check"]],
     ["Create", ["Timestamp", "Branch", "Batch / Pack", "Account"]],
-    ["History", ["Proofs", "Restore"]],
+    ["History", ["Merge proofs", "Proof inspector", "Restore"]],
   ] as const) {
     await user.click(sections().getByRole("button", { name: section }));
     expect(
@@ -114,6 +114,6 @@ it("supports keyboard selection and blocks both levels while a transaction is pe
   view.rerender(<Navigation />);
   await user.click(sections().getByRole("button", { name: "History" }));
   expect(tools().getByRole("button", { current: "page" }).textContent).toBe(
-    "Proofs",
+    "Merge proofs",
   );
 });

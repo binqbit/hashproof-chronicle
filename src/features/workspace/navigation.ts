@@ -6,6 +6,7 @@ import {
   GitBranch,
   History,
   Layers,
+  Network,
   Search,
   ShieldCheck,
 } from "lucide-react";
@@ -37,10 +38,11 @@ export const workspaceGroups = [
   {
     key: "history",
     label: "History",
-    description: "Combine proofs & restore records",
+    description: "Proof files & record recovery",
     icon: History,
     tools: [
-      { key: "proofs", label: "Proofs", icon: Files },
+      { key: "proofs", label: "Merge proofs", icon: Files },
+      { key: "proof-inspector", label: "Proof inspector", icon: Network },
       { key: "restore", label: "Restore", icon: History },
     ],
   },

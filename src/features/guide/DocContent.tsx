@@ -235,9 +235,10 @@ const content: Record<DocTopicId, ReactNode> = {
       </p>
       <p>
         Your wallet selection is remembered for reconnection on reload;
-        authorization remains controlled by the wallet. “Disconnect wallet”
-        forgets that selection. The app does not store private keys or
-        transaction approvals. Proof history is not saved with the connection.
+        authorization remains controlled by the wallet. Open the Wallet menu
+        and choose “Disconnect” to forget that selection. The app does not store
+        private keys or transaction approvals. Proof history is not saved with
+        the connection.
       </p>
     </>
   ),

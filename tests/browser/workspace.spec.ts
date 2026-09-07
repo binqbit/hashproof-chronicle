@@ -521,7 +521,7 @@ test("checks restore against a live anchor and invalidates the result on editing
   ).toBeVisible();
 });
 
-test("remembers the selected wallet across reload and forgets it on explicit disconnect", async ({
+test("remembers the selected wallet across reload and forgets it through the Wallet menu", async ({
   page,
 }) => {
   await page.addInitScript(() => {
@@ -562,9 +562,14 @@ test("remembers the selected wallet across reload and forgets it on explicit dis
     .getByRole("button", { name: "Select Wallet", exact: true })
     .click();
   await page.getByRole("button", { name: /Phantom/ }).click();
+  const walletAddress = new PublicKey(new Uint8Array(32).fill(6)).toBase58();
+  const walletButton = page.getByRole("button", {
+    name: `${walletAddress.slice(0, 4)}..${walletAddress.slice(-4)}`,
+  });
+  await expect(walletButton).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Disconnect wallet", exact: true }),
-  ).toBeVisible();
+    page.getByRole("button", { name: /Disconnect|Forget wallet/ }),
+  ).toHaveCount(0);
   expect(await page.evaluate(() => localStorage.getItem("walletName"))).toBe(
     '"Phantom"',
   );
@@ -574,11 +579,10 @@ test("remembers the selected wallet across reload and forgets it on explicit dis
     ),
   ).toBe(true);
   await page.reload();
-  await expect(
-    page.getByRole("button", { name: "Disconnect wallet", exact: true }),
-  ).toBeVisible();
+  await expect(walletButton).toBeVisible();
+  await walletButton.click();
   await page
-    .getByRole("button", { name: "Disconnect wallet", exact: true })
+    .getByRole("menuitem", { name: "Disconnect", exact: true })
     .click();
   await expect(
     page.getByRole("button", { name: "Select Wallet", exact: true }),
@@ -591,7 +595,7 @@ test("remembers the selected wallet across reload and forgets it on explicit dis
     page.getByRole("button", { name: "Select Wallet", exact: true }),
   ).toBeVisible();
   await expect(
-    page.getByRole("button", { name: "Disconnect wallet", exact: true }),
+    page.getByRole("button", { name: /Disconnect|Forget wallet/ }),
   ).toHaveCount(0);
 });
 

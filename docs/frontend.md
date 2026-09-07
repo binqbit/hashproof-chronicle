@@ -29,9 +29,9 @@ only to host loopback and is intended for use on that host.
 Wallet Adapter remembers the selected wallet in this browser's `walletName`
 localStorage entry and attempts reconnection on reload when that wallet is
 available. The wallet still controls authorization and may ask for approval.
-**Disconnect wallet** disconnects and forgets the selection, so reloading does
-not reconnect until you choose a wallet again. No private keys, signatures or
-transaction approvals are persisted by the app. Proof history is not persisted.
+**Disconnect** in the Wallet menu disconnects and forgets the selection, so
+reloading does not reconnect until you choose a wallet again. No private keys,
+signatures or transaction approvals are persisted by the app. Proof history is not persisted.
 The wallet approves each transaction; fund it on the selected network first.
 Wallet controls, network changes and duplicate submissions
 are blocked while a transaction is pending. A confirmation timeout is ambiguous:

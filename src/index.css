@@ -135,12 +135,6 @@ code,
   margin: 0;
   min-width: 0;
 }
-.wallet-controls small {
-  display: block;
-  max-width: 300px;
-  overflow-wrap: anywhere;
-  color: hsl(var(--destructive));
-}
 .brand {
   display: flex;
   align-items: center;

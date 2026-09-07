@@ -13,21 +13,34 @@ import { WalletControls } from "../../src/components/WalletControls";
 
 const state = vi.hoisted(() => ({
   busy: false,
+  disconnecting: false,
   disconnect: vi.fn(),
-  select: vi.fn(),
+  menuKeyDown: vi.fn(),
 }));
 vi.mock("@solana/wallet-adapter-react", () => ({
   useWallet: () => ({
     wallet: {},
     connected: true,
     connecting: false,
-    disconnecting: false,
+    disconnecting: state.disconnecting,
     disconnect: state.disconnect,
-    select: state.select,
   }),
 }));
 vi.mock("@solana/wallet-adapter-react-ui", () => ({
-  WalletMultiButton: () => <button>Select wallet</button>,
+  WalletMultiButton: () => (
+    <div>
+      <button>Wallet</button>
+      <ul role="menu">
+        <li
+          role="menuitem"
+          onClick={state.disconnect}
+          onKeyDown={state.menuKeyDown}
+        >
+          Disconnect
+        </li>
+      </ul>
+    </div>
+  ),
 }));
 vi.mock("../../src/contract/network", () => ({
   useNetwork: () => ({ busy: state.busy }),
@@ -36,6 +49,7 @@ afterEach(() => {
   cleanup();
   vi.clearAllMocks();
   state.busy = false;
+  state.disconnecting = false;
 });
 
 it("invalidates successful checks and ignores late results after input changes", async () => {
@@ -66,30 +80,32 @@ it("invalidates successful checks and ignores late results after input changes",
   expect(hook.result.current.value).toBeUndefined();
 });
 
-it("disconnects and forgets the wallet selection", async () => {
-  state.disconnect.mockResolvedValue(undefined);
+it("renders only the Wallet button and delegates disconnect to its menu", () => {
   render(<WalletControls />);
-  await act(async () => {
-    fireEvent.click(screen.getByRole("button", { name: "Disconnect wallet" }));
-  });
+  expect(screen.getAllByRole("button")).toHaveLength(1);
+  expect(screen.getByRole("button", { name: "Wallet" })).toBeTruthy();
+  fireEvent.click(screen.getByRole("menuitem", { name: "Disconnect" }));
   expect(state.disconnect).toHaveBeenCalledOnce();
-  expect(state.select).toHaveBeenCalledWith(null);
 });
 
-it("locks wallet controls during a transaction and reports disconnect failures", async () => {
-  state.busy = true;
-  const view = render(<WalletControls />);
-  expect(
-    screen
-      .getByRole("button", { name: "Disconnect wallet" })
-      .closest("fieldset")?.disabled,
-  ).toBe(true);
-  state.busy = false;
-  state.disconnect.mockRejectedValue(new Error("Wallet refused"));
-  view.rerender(<WalletControls />);
-  await act(async () => {
-    fireEvent.click(screen.getByRole("button", { name: "Disconnect wallet" }));
-  });
-  expect(screen.getByRole("alert").textContent).toContain("Wallet refused");
-  expect(state.select).not.toHaveBeenCalled();
-});
+it.each(["busy", "disconnecting"] as const)(
+  "locks the wallet button and menu while %s, then unlocks them",
+  (lock) => {
+    state[lock] = true;
+    const view = render(<WalletControls />);
+    const button = screen.getByRole("button", { name: "Wallet" });
+    const menu = screen.getByRole("menuitem", { name: "Disconnect" });
+    expect(button.closest("fieldset")?.disabled).toBe(true);
+    fireEvent.click(menu);
+    fireEvent.keyDown(menu, { key: "Enter" });
+    expect(state.disconnect).not.toHaveBeenCalled();
+    expect(state.menuKeyDown).not.toHaveBeenCalled();
+    state[lock] = false;
+    view.rerender(<WalletControls />);
+    expect(button.closest("fieldset")?.disabled).toBe(false);
+    fireEvent.click(menu);
+    fireEvent.keyDown(menu, { key: "Enter" });
+    expect(state.disconnect).toHaveBeenCalledOnce();
+    expect(state.menuKeyDown).toHaveBeenCalledOnce();
+  },
+);

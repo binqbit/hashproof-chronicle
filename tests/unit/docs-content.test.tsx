@@ -1,0 +1,60 @@
+// @vitest-environment jsdom
+import { afterEach, expect, it } from "vitest";
+import { cleanup, render, screen } from "@testing-library/react";
+import { DocContent } from "../../src/features/guide/DocContent";
+import { docTopics } from "../../src/features/guide/topics";
+
+afterEach(cleanup);
+
+it.each(docTopics.filter((topic) => topic.id !== "developers"))(
+  "$id explains user actions without implementation details",
+  (topic) => {
+    const { container } = render(<DocContent topic={topic.id} />);
+    const text = `${topic.description} ${container.textContent}`;
+    expect(text).not.toMatch(
+      /\b(SDK|RPC|IDL|u64|i64)\b|entry zero|topological|hash-timestamp-(archive|proof)|program IDs?|byte arrays?/i,
+    );
+    expect(container.querySelector("pre, code")).toBeNull();
+  },
+);
+
+it("identifies the original contract and SDK with one clear, safe GitHub link", () => {
+  render(<DocContent topic="developers" />);
+  const link = screen.getByRole("link", {
+    name: "Open binqbit/hash-timestamp on GitHub (opens in a new tab)",
+  });
+  expect(screen.getAllByRole("link")).toHaveLength(1);
+  expect(link.getAttribute("href")).toBe(
+    "https://github.com/binqbit/hash-timestamp",
+  );
+  expect(link.getAttribute("target")).toBe("_blank");
+  expect(link.getAttribute("rel")?.split(" ")).toEqual(
+    expect.arrayContaining(["noopener", "noreferrer"]),
+  );
+  expect(link.textContent).toContain("GitHub repository");
+  expect(link.textContent).toContain("Smart contract & SDK");
+});
+
+it("keeps the merged-file Restore limitation prominent and actionable", () => {
+  render(<DocContent topic="proofs" />);
+  const warning = screen.getByRole("complementary", {
+    name: "Keep the original proof files too",
+  });
+  expect(warning.textContent).toContain("cannot be used directly in Restore");
+  expect(warning.textContent).toContain("individual proofs from Inspect");
+  expect(warning.textContent).toContain("does not confirm their history");
+});
+
+it("retains Restore prerequisites and explains that it cannot recover lost files", () => {
+  render(<DocContent topic="restore" />);
+  expect(
+    screen.getByRole("complementary", { name: "Before you start" }).textContent,
+  ).toMatch(
+    /first record in that proof must still exist on the original network/,
+  );
+  expect(
+    screen.getByRole("complementary", {
+      name: "Restore records, not lost files",
+    }).textContent,
+  ).toContain("cannot recover the original file or fill in missing history");
+});

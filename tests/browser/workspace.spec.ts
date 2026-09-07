@@ -315,9 +315,12 @@ test("opens routed documentation and preserves the selected record and draft on 
   await expect(page).toHaveURL("/docs/use-cases");
   await chooseDoc(page, "restore", "History / Restore");
   await expect(
-    page.getByText("Place the surviving live anchor at entry zero.", {
-      exact: false,
-    }),
+    page.getByText(
+      "record in that proof must still exist on the original network.",
+      {
+        exact: false,
+      },
+    ),
   ).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("docs-restore.png") });
   await page
@@ -385,6 +388,56 @@ test("documentation deep links work offline, fit small screens and handle unknow
   await expect(
     page.getByRole("navigation", { name: "Record operations" }),
   ).toBeVisible();
+});
+
+test("documentation highlights proof limitations and clearly links to GitHub", async ({
+  page,
+}, testInfo) => {
+  await rpc(page, undefined, true);
+  await page.goto("/docs/proofs");
+  await expect(
+    page.getByRole("complementary", {
+      name: "Keep the original proof files too",
+    }),
+  ).toContainText("The merged download cannot be used directly in Restore.");
+  await expect(page.getByRole("article")).not.toContainText(/\bSDK\b|\bRPC\b/);
+  await chooseDoc(page, "developers", "Developer resources");
+  const repository = page.getByRole("link", {
+    name: "Open binqbit/hash-timestamp on GitHub (opens in a new tab)",
+  });
+  await expect(repository).toHaveAttribute(
+    "href",
+    "https://github.com/binqbit/hash-timestamp",
+  );
+  await expect(repository).toContainText("GitHub repository");
+  await expect(repository).toContainText("View on GitHub");
+  await expect(
+    page.getByRole("article").getByRole("link", { name: /GitHub/ }),
+  ).toHaveCount(1);
+  await repository.focus();
+  await expect(repository).toBeFocused();
+  await page.screenshot({ path: testInfo.outputPath("docs-developers.png") });
+  await page.setViewportSize({ width: 320, height: 568 });
+  await repository.scrollIntoViewIfNeeded();
+  expect(
+    await page.getByRole("article").evaluate((element) => {
+      const bounds = element.getBoundingClientRect();
+      return (
+        bounds.left >= 0 &&
+        bounds.right <= innerWidth &&
+        bounds.bottom <= innerHeight &&
+        element.scrollWidth <= element.clientWidth
+      );
+    }),
+  ).toBe(true);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("docs-developers-small.png"),
+  });
 });
 
 test("checks restore against a live anchor and invalidates the result on editing", async ({

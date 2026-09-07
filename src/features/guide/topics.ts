@@ -24,7 +24,7 @@ export const docTopics = [
     label: "How it works",
     title: "What a timestamp proves",
     description:
-      "Understand commitments, linked history and the limits of the evidence.",
+      "What your saved record tells you, and what it cannot guarantee.",
     icon: Fingerprint,
   },
   {
@@ -45,7 +45,7 @@ export const docTopics = [
   },
   {
     id: "identifiers",
-    label: "IDs, aggregates & votes",
+    label: "Record IDs, groups & votes",
     title: "Identifiers, Batch / Pack and votes",
     description:
       "Choose the right identifier and understand how records stay live.",
@@ -63,8 +63,7 @@ export const docTopics = [
     id: "proofs",
     label: "Proof files",
     title: "Combine your proof files",
-    description:
-      "Merge retained history into one portable SDK archive, entirely in your browser.",
+    description: "Keep your saved history together, without a wallet or a fee.",
     icon: Files,
   },
   {
@@ -79,7 +78,7 @@ export const docTopics = [
     id: "developers",
     label: "Developer resources",
     title: "Build with Hash Timestamp",
-    description: "The repositories, SDK and references behind this workspace.",
+    description: "The original project, for developers and contributors.",
     icon: Code2,
   },
 ] as const;

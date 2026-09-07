@@ -22,6 +22,7 @@ export function DocsPage({ backTo }: { backTo: string }) {
   const navigate = useNavigate();
   const topicIndex = docTopics.findIndex((topic) => topic.id === section);
   const topic = docTopics[topicIndex];
+  const TopicIcon = topic?.icon ?? BookOpen;
   const next = docTopics[topicIndex + 1];
   const heading = useRef<HTMLHeadingElement>(null);
   const article = useRef<HTMLElement>(null);
@@ -87,9 +88,20 @@ export function DocsPage({ backTo }: { backTo: string }) {
           aria-labelledby="docs-heading"
         >
           <header className="docs-article-heading">
-            <span className="eyebrow">
-              HASH TIMESTAMP / {topic?.label ?? "DOCUMENTATION"}
-            </span>
+            <div className="docs-topic-mark">
+              <span className="docs-topic-icon">
+                <TopicIcon size={22} aria-hidden="true" />
+              </span>
+              <span className="eyebrow">
+                {topic?.id === "developers" ? "DEVELOPERS" : "USER GUIDE"}
+              </span>
+              {topic && (
+                <span className="docs-topic-number">
+                  {String(topicIndex + 1).padStart(2, "0")} /{" "}
+                  {String(docTopics.length).padStart(2, "0")}
+                </span>
+              )}
+            </div>
             <h1 id="docs-heading" ref={heading} tabIndex={-1}>
               {topic?.title ?? "Topic not found"}
             </h1>

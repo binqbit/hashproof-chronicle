@@ -1,5 +1,31 @@
 import type { ReactNode } from "react";
+import { ArrowUpRight, Github, Info, TriangleAlert } from "lucide-react";
 import type { DocTopicId } from "./topics";
+
+function GuideNote({
+  title,
+  warning = false,
+  children,
+}: {
+  title: string;
+  warning?: boolean;
+  children: ReactNode;
+}) {
+  const Icon = warning ? TriangleAlert : Info;
+  return (
+    <aside
+      className="docs-note"
+      data-tone={warning ? "warning" : "info"}
+      aria-label={title}
+    >
+      <Icon size={19} aria-hidden="true" />
+      <div>
+        <strong>{title}</strong>
+        <p>{children}</p>
+      </div>
+    </aside>
+  );
+}
 
 // User instructions are independent of navigation and contain no transaction logic.
 const content: Record<DocTopicId, ReactNode> = {
@@ -7,259 +33,319 @@ const content: Record<DocTopicId, ReactNode> = {
     <>
       <ol>
         <li>
-          <strong>Choose a network.</strong> Use the same network for
-          registration and later lookups. The program must be available there.
+          <strong>Choose a network.</strong> Use the same network whenever you
+          save or look up a record. Check that the service is available there.
         </li>
         <li>
-          <strong>Open Timestamp and choose a file.</strong> SHA-256 is
-          calculated in your browser. You can also paste a raw 32-byte digest.
-          File contents are not uploaded.
+          <strong>Open Timestamp and choose a file.</strong> The app calculates
+          its fingerprint, called a hash, on your device. Your file is not
+          uploaded.
         </li>
         <li>
-          <strong>Inspect before registering.</strong> The screen derives the
-          canonical ID and account PDA. Use “Inspect record — no fee” to check
-          whether that record is already live.
+          <strong>Check before registering.</strong> Choose “Inspect record — no
+          fee” to see whether the file already has a record. No wallet is
+          needed.
         </li>
         <li>
-          <strong>Connect a funded wallet to register.</strong> “Register +
-          first vote” needs rent and transaction fees on the selected network.
-          If the record exists, use Inspect to add your vote instead.
+          <strong>Register with your wallet.</strong> Connect a wallet with SOL
+          on the selected network and choose “Register + first vote”. Review the
+          cost before approving. If the record exists, you can add a vote in
+          Inspect.
         </li>
         <li>
-          <strong>Keep the file and download its proof.</strong> Save proof JSON
-          from Inspect or the confirmed receipt. This website is not a backup:
-          retained history disappears on reload, closing the page or switching
-          networks.
-        </li>
-        <li>
-          <strong>Check it later.</strong> Inspect accepts the canonical ID or
-          live record PDA without a wallet. For an original Timestamp record,
-          select the file in Timestamp again to recompute its identity. Branch
-          records have their own derived identities.
+          <strong>Keep the file and download its proof.</strong> A proof file
+          saves the information needed to check the record’s history. Download
+          it from Inspect or the transaction result and keep it with your
+          original file.
         </li>
       </ol>
+      <GuideNote title="Coming back later?">
+        Select the same file in Timestamp to find its original record, or paste
+        a saved record ID into Inspect. For a new version created with Branch,
+        keep that version’s own record ID too. This website does not back up
+        your files or saved history.
+      </GuideNote>
     </>
   ),
   "how-it-works": (
     <>
+      <h2>A fingerprint, not a file upload</h2>
       <p>
-        A file digest is a fingerprint of its bytes. The contract records a
-        commitment on Solana, while branches and aggregates link historical
-        records together. This gives other people a way to check a retained
-        history without relying only on editable file metadata.
+        A hash is a fingerprint of a file’s contents. Changing the contents
+        changes the fingerprint. Hashproof records this fingerprint and a
+        timestamp, so you can later compare a file with its saved record.
       </p>
+      <h2>A history you can check</h2>
       <p>
-        The evidence concerns a historical commitment and its linked timestamps.
-        It does not establish the exact moment a file was created, who authored
-        or owns it, or whether its contents are true. Votes help keep a record
-        live; they do not certify those claims.
+        Branch connects file versions; Batch and Pack group related records.
+        Saved proof files help you check their history, even when some older
+        records are no longer available in the network.
       </p>
+      <GuideNote title="What a timestamp does not prove" warning>
+        A timestamp is evidence of a recorded fingerprint. It does not establish
+        the exact time a file was created, who wrote or owns it, or whether its
+        contents are true. Votes do not certify those claims either.
+      </GuideNote>
+      <h2>Your files stay with you</h2>
       <p>
-        Files stay on your device, but submitted commitments and wallet
-        transactions are public. Someone with a candidate file can compare its
-        digest. Do not treat a public hash as encryption.
+        Original files stay on your device. Registered fingerprints and wallet
+        activity are public. Someone who has a copy of a file can compare its
+        fingerprint, so a timestamp is not a way to encrypt or hide a file.
       </p>
     </>
   ),
   "use-cases": (
     <>
-      <ul>
+      <ul className="docs-use-cases">
         <li>
-          <strong>Document versions.</strong> Timestamp a draft, then use Branch
-          with its ID or PDA and the revised file to keep versions linked.
+          <strong>Document versions.</strong>
+          Timestamp a draft, then use Branch with each revision to keep a
+          checkable record of how it changed.
         </li>
         <li>
-          <strong>Research and datasets.</strong> Record a dataset or report
-          digest and link subsequent revisions. This records commitments, not
-          the accuracy of the research.
+          <strong>Research and datasets.</strong>
+          Record the version of a dataset or report used for your work. Link
+          later updates without confusing them with the original.
         </li>
         <li>
-          <strong>Creative work and releases.</strong> Keep a checkable history
-          of designs, media or software artifacts. A timestamp alone does not
-          establish authorship or authenticity.
+          <strong>Creative work and releases.</strong>
+          Keep a dated history of designs, media or software releases that
+          others can compare with the files you share.
         </li>
         <li>
-          <strong>Collections and handovers.</strong> Group related live records
-          with Batch or Pack. Retain the exact member history, especially for a
-          Pack.
+          <strong>Collections and handovers.</strong>
+          Use Batch or Pack to group existing records for related files. Save
+          their proofs with the collection, especially when using Pack.
         </li>
         <li>
-          <strong>Solana account history.</strong> Use Account to commit an
-          account snapshot. Keep the captured metadata and bytes; a later state
-          may differ.
+          <strong>Solana account history.</strong>
+          Use Account to record an account’s current state. Download its proof;
+          checking the account later may show a different state.
         </li>
       </ul>
+      <GuideNote title="Evidence, not a certificate">
+        These workflows help you compare files and their history. They do not
+        certify authorship, authenticity or the accuracy of the content.
+      </GuideNote>
     </>
   ),
   branch: (
     <>
       <ol>
-        <li>Enter the previous live record’s canonical ID or PDA in Branch.</li>
         <li>
-          Choose the new file version, or paste its digest. Wait for local
-          hashing to finish.
+          <strong>Find the previous version.</strong> In Branch, enter its
+          record ID or account address. The previous record must still be
+          available.
         </li>
         <li>
-          Use “Check parent & preview — no fee” to resolve the parent and
-          preview the new branch ID and PDA.
+          <strong>Choose the revised file.</strong> Wait for its fingerprint to
+          be calculated. You can also paste a hash you already have.
         </li>
         <li>
-          Connect your wallet and create the branch, then save its proof. The
-          child is a new record; it does not overwrite the parent.
+          <strong>Review the new version.</strong> Use “Check parent & preview —
+          no fee” to check the previous record and see the new record’s ID.
+        </li>
+        <li>
+          <strong>Create the branch and save its proof.</strong> Approve the
+          operation in your wallet. This creates a new, linked record; it does
+          not overwrite the previous version.
         </li>
       </ol>
-      <p>
-        Parent-vote withdrawal is optional and off by default. If enabled, it
-        can close the parent when your vote is the last one. Retain the parent
-        history before doing this.
-      </p>
+      <GuideNote title="Before withdrawing your previous vote" warning>
+        This option is off by default. Removing the last vote closes the
+        previous record. Save its proof before choosing this option.
+      </GuideNote>
     </>
   ),
   identifiers: (
     <>
+      <h2>Which value should I copy?</h2>
+      <dl className="docs-definitions">
+        <div>
+          <dt>File hash</dt>
+          <dd>
+            A fingerprint of the file. Use it in Timestamp, or choose the file
+            itself.
+          </dd>
+        </div>
+        <div>
+          <dt>Canonical ID</dt>
+          <dd>
+            The record ID shown in your results. Copy it into Inspect, Branch or
+            Batch / Pack.
+          </dd>
+        </div>
+        <div>
+          <dt>Account PDA</dt>
+          <dd>
+            The record’s address in Solana. You can use it instead of the ID
+            while the record is available.
+          </dd>
+        </div>
+      </dl>
       <p>
-        A <strong>raw hash</strong> is a file digest or another 32-byte value. A{" "}
-        <strong>canonical ID</strong> is the protocol identity, shown as 64
-        hexadecimal characters. An <strong>account PDA</strong> is its base58
-        Solana address. Inspect, Branch and Batch / Pack accept IDs or PDAs, not
-        an unconverted raw file digest.
+        Copy values directly from the result to avoid mixing up a file hash and
+        a record ID. Hash fields accept hex or Base58 text. If a lookup asks you
+        to clarify the value, use the Canonical ID shown in the record’s
+        details.
+      </p>
+      <h2>Group records with Batch or Pack</h2>
+      <p>
+        Both options group existing records. Add each record once, using its ID
+        or address, in the order you want. Check the preview before creating the
+        group. Changing the order creates a different group.
       </p>
       <p>
-        Hash inputs accept hex or Base58. Results and SDK archives use lowercase
-        hex for hashes/IDs and Base58 for public keys/PDAs. In record lookups,
-        bare hex means an ID; Base58 is checked as both an ID and a PDA. Use
-        <code>id:</code> or <code>pda:</code> before either encoding to specify
-        its type. A missing Base58 ID needs <code>id:</code>; a closed PDA alone
-        cannot reveal its historical ID.
+        Batch keeps its member list visible. Pack needs your saved proofs to
+        recover that list, so keep the proofs for both the group and its
+        members.
       </p>
+      <h2>Keep a record available with votes</h2>
       <p>
-        Batch and Pack take ordered live members; changing their order changes
-        the result. Batch stores member IDs; Pack stores a digest of member
-        fingerprints, so it cannot reveal a missing member list. Check the
-        members and save their history before creating an aggregate.
-      </p>
-      <p>
-        Registration creates a first vote. Other wallets can add their own
-        votes. Withdrawing the last vote closes the record. Re-registering the
-        same identity later can create a different historical timestamp; an ID
-        alone does not distinguish these incarnations.
+        Registering includes your first vote. Other wallets can add votes too.
+        Removing the last vote closes the record. Registering it again later
+        does not bring back its original timestamp; keep the original proof if
+        you need to show its earlier history.
       </p>
     </>
   ),
   restore: (
     <>
+      <GuideNote title="Before you start">
+        Use a proof downloaded from Inspect or a transaction result. The first
+        record in that proof must still exist on the original network. If it has
+        been removed, you need another saved proof linking the history to a
+        record that is still available.
+      </GuideNote>
       <ol>
         <li>
-          Keep proof JSON and any original account snapshots before records
-          close. A closed PDA cannot reveal its former identity or history.
+          <strong>Open your saved proof.</strong> Select the original network,
+          open Restore and choose the proof file. Keep your original file too.
         </li>
         <li>
-          Open Restore on the matching network. Import proof JSON and use “Check
-          format & load history”. Parsing is not proof verification.
+          <strong>Load the history.</strong> Choose “Check format & load
+          history”. This reads the file; it does not yet confirm that the
+          history is valid.
         </li>
         <li>
-          Place the surviving live anchor at entry zero. Other entries need not
-          be topologically ordered, but must form the required connected
-          history.
+          <strong>Choose what to do and check it.</strong> Leave recreation off
+          to check history only, or enable it to bring back eligible older
+          records. Then choose “Check proof & live state — no fee” and review
+          any warnings.
         </li>
         <li>
-          Use “Check proof & live state — no fee”. This checks commitments,
-          dependencies, live accounts and transaction size without signing.
-        </li>
-        <li>
-          Choose proof-only validation or account recreation, then submit with
-          your wallet. Both pay fees; recreation also needs rent where
-          applicable.
+          <strong>Confirm in your wallet.</strong> Submit only after the checks
+          pass. Both choices cost transaction fees; recreating records also
+          needs SOL to store them. Changing the proof or options requires
+          another check.
         </li>
       </ol>
-      <p>
-        Restore validates supplied history against the live anchor; it cannot
-        recover file contents or invent missing proof data. Occupied records
-        with a different historical incarnation can block recreation. A partial
-        export may need more history, and large proofs may not fit one
-        transaction. A successful preflight is not a guarantee of success if
-        on-chain state changes before submission.
-      </p>
+      <GuideNote title="Restore records, not lost files" warning>
+        Restore cannot recover the original file or fill in missing history.
+        Incomplete proofs, conflicting records or very large histories can
+        prevent restoration. A passed check cannot guarantee completion if
+        records change before you confirm.
+      </GuideNote>
     </>
   ),
   proofs: (
     <>
+      <p>
+        Bring saved proof files together into one download. Everything happens
+        on your device: merging needs no wallet, network connection or fee.
+      </p>
       <ol>
         <li>
-          Open the Proofs tab. Choose at least two JSON files together, or add
-          them in several selections.
-        </li>
-        <li>Review the file list and remove anything you do not want to include.</li>
-        <li>
-          Click “Merge files”. Matching nodes are combined; contradictory
-          history or different program IDs stop the merge.
+          <strong>Choose your files.</strong> Open Proofs and select at least
+          two saved proof files. You can add more in another selection.
         </li>
         <li>
-          Review the node count and any missing-history warnings, then click
-          “Download merged JSON”. Keep the downloaded file as your backup.
+          <strong>Review the list.</strong> Remove any file you do not want to
+          include.
+        </li>
+        <li>
+          <strong>Merge and check the result.</strong> Click “Merge files”.
+          Repeated records are combined. Conflicting histories cannot be merged.
+        </li>
+        <li>
+          <strong>Save the combined file.</strong> Read any missing-history
+          warnings, then choose “Download merged JSON”. You can add more history
+          later by merging it with other saved files.
         </li>
       </ol>
+      <GuideNote title="Keep the original proof files too" warning>
+        The merged download cannot be used directly in Restore. Keep the
+        individual proofs from Inspect or your transaction results for that
+        step. Combining files alone does not confirm their history on the
+        network.
+      </GuideNote>
+      <h2>Before you leave</h2>
       <p>
-        SDK archives and legacy proof exports from this frontend are accepted.
-        Legacy proof arrays use the app's program ID; envelopes keep their own
-        program ID. Legacy files must contain the nodes needed to check any
-        supplied fingerprints. Nothing is fetched or invented to fill gaps.
+        Download your result before reloading, closing the page or switching
+        networks. Opening another tab in the workspace or reading this guide
+        keeps your current selection.
       </p>
       <p>
-        A partial SDK archive is still useful: save it and merge more history
-        later. The file picker allows up to 32 files, 16 MiB per file and 32 MiB
-        total. Legacy proof inputs retain their 2 MB / 64-entry limit. The SDK
-        checks the resulting archive's 16 MiB / 10,000-node limit.
-      </p>
-      <p>
-        The output uses <code>hash-timestamp-archive</code>, with hex hashes and
-        Base58 addresses. It does not store RPC metadata or file names, and
-        local validation is not an on-chain existence proof. No wallet, network
-        connection or transaction is required for merging.
-      </p>
-      <p>
-        Use the SDK archive planner for restoration from this file. The Restore
-        tab still accepts legacy proof chains, not SDK archives. Check the
-        original network before using any history on-chain. File selections and
-        results remain when switching operation tabs or opening Docs, but are
-        cleared on reload or network changes.
+        You can select up to 32 files, up to 16 MiB each and 32 MiB in total.
+        Some older files have smaller limits; the app will tell you if a file
+        cannot be read. Your original files are never changed.
       </p>
     </>
   ),
   wallet: (
     <>
+      <h2>Explore without connecting</h2>
       <p>
-        Hashing, lookups and read-only previews need no wallet signature.
-        Buttons marked “on-chain” or “fee” send a transaction and require wallet
-        approval. An on-chain verification is different from a free RPC lookup.
+        Choose files, inspect records, preview changes and combine proof files
+        without a wallet. Buttons marked “no fee” do not ask you to approve a
+        payment.
+      </p>
+      <h2>Approve changes in your wallet</h2>
+      <p>
+        Registering, voting, creating versions or groups, and submitting Restore
+        all need wallet approval and SOL on the selected network. Checking a
+        record with “Verify on-chain — fee” is also a paid operation, unlike a
+        lookup.
       </p>
       <p>
-        Your wallet selection is remembered for reconnection on reload;
-        authorization remains controlled by the wallet. Open the Wallet menu
-        and choose “Disconnect” to forget that selection. The app does not store
-        private keys or transaction approvals. Proof history is not saved with
-        the connection.
+        Review the cost in your wallet before confirming. Creating records also
+        funds their storage. If confirmation takes too long, check your wallet’s
+        activity before trying again to avoid sending the same operation twice.
       </p>
+      <GuideNote title="Your connection, your choice">
+        The app remembers your selected wallet and tries to reconnect when you
+        return. Open the Wallet menu and choose “Disconnect” to forget that
+        selection. The app does not store your private keys or approval for
+        future transactions. Remembering your wallet does not back up your
+        proofs.
+      </GuideNote>
     </>
   ),
   developers: (
     <>
       <p>
-        The frontend uses the Hash Timestamp SDK for identities, account
-        decoding and instructions. The contract repository documents the SDK,
-        instructions and proof formats.
+        The original Hash Timestamp smart contract and the SDK for working with
+        it are available in the GitHub repository below.
       </p>
-      <ul>
-        <li>
-          <a
-            href="https://github.com/binqbit/hash-timestamp"
-            target="_blank"
-            rel="noreferrer"
-          >
-            Smart contract, SDK and instruction reference
-          </a>
-        </li>
-      </ul>
+      <a
+        className="docs-repository"
+        href="https://github.com/binqbit/hash-timestamp"
+        target="_blank"
+        rel="noopener noreferrer"
+        aria-label="Open binqbit/hash-timestamp on GitHub (opens in a new tab)"
+      >
+        <span className="docs-repository-icon">
+          <Github size={28} aria-hidden="true" />
+        </span>
+        <span className="docs-repository-details">
+          <span className="docs-repository-label">GitHub repository</span>
+          <strong>binqbit / hash-timestamp</strong>
+          <span>Smart contract & SDK</span>
+          <span className="docs-repository-action">
+            View on GitHub <ArrowUpRight size={16} aria-hidden="true" />
+          </span>
+        </span>
+      </a>
     </>
   ),
 };

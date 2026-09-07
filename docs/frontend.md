@@ -48,6 +48,10 @@ have their own `/docs/:section` links and support reload and browser back/forwar
 The guide covers a quick start, use cases, identifiers, Branch, Restore, proof files,
 votes, wallet behavior and developer resources. Unknown topic links show a
 not-found message with a link back to Getting started.
+In-app articles explain user actions and outcomes, with short steps and clearly
+marked cautions rather than SDK internals or JSON schemas. Developer resources
+contains a labeled GitHub link to the original smart contract and SDK. Technical
+integration details remain in this guide and the contract documentation.
 The UI retains the original dark, purple/cyan theme and background artwork across
 the updated operation tabs, help and wallet controls. Shared colors live in
 `src/styles/theme.css`; help layout styles stay within `src/features/guide/`.

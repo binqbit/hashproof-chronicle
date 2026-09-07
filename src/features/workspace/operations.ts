@@ -21,6 +21,8 @@ import {
   fingerprint,
   mergeHistory,
   recordEntry,
+  assertMatchingHistory,
+  entryId,
 } from "../history/collect-proof";
 import { errorMessage, hex } from "./values";
 import { checkRestore } from "../history/check-restore";
@@ -150,9 +152,15 @@ export async function aggregate(
   client: HashTimestampClient,
   kind: "batch" | "pack",
   ids: string[],
-  history: RestoreProofInput[]
+  history: RestoreProofInput[],
+  expectedMembers: RestoreProofInput[] = [],
 ): Promise<Receipt> {
   const snapshot = await snapshots(client, ids);
+  const expected = new Map(expectedMembers.map((entry) => [entryId(entry), entry]));
+  for (const id of ids) {
+    const saved = expected.get(id);
+    if (saved) assertMatchingHistory((await snapshot.fetchHashAccount(id))!, saved);
+  }
   const members = await Promise.all(
     ids.map(async (id) =>
       fingerprint(recordEntry((await snapshot.fetchHashAccount(id))!))

@@ -3,6 +3,7 @@ import {
   HashTimestampClient,
   canonicalHashId,
   decodeHashSource,
+  encodeHashSource,
   generationFromSource,
   hashSourceKindOf,
   deriveBranchHash,
@@ -38,6 +39,24 @@ export function recordEntry(record: HashAccountData): RestoreProofInput {
     source: decodeHashSource(record.source),
     createdAt: BigInt(record.createdAt.toString()),
   };
+}
+
+/** Imported history describes one incarnation, not every later record at the same PDA. */
+export function assertMatchingHistory(
+  record: HashAccountData,
+  entry: RestoreProofInput,
+) {
+  if (
+    hex(record.hash) !== hex(to32Bytes(entry.hash)) ||
+    toBigInt(record.createdAt) !== toBigInt(entry.createdAt) ||
+    JSON.stringify(encodeHashSource(decodeHashSource(record.source))) !==
+      JSON.stringify(encodeHashSource(entry.source))
+  )
+    throw new Error(
+      `Record ${entryId(
+        entry,
+      )} no longer matches the imported history. Use a proof for its current record.`,
+    );
 }
 
 export function mergeHistory(...proofs: RestoreProofInput[][]) {

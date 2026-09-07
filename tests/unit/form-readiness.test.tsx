@@ -16,6 +16,8 @@ import { AccountPanel } from "../../src/features/records/AccountPanel";
 import { RecordPanel } from "../../src/features/records/RecordPanel";
 import { RegisterPanel } from "../../src/features/records/RegisterPanel";
 import { RestorePanel } from "../../src/features/history/RestorePanel";
+import type { SelectField } from "../../src/components/SelectField";
+import type { ComponentProps } from "react";
 
 const state = vi.hoisted(() => ({
   busy: false,
@@ -43,6 +45,32 @@ vi.mock("../../src/features/history/check-restore", () => ({
 }));
 vi.mock("../../src/contract/records", () => ({
   resolveRecord: state.resolveRecord,
+}));
+// Form readiness is independent of Radix's pointer/layout APIs. The themed
+// dropdown and manual-mode switch are covered in the real-browser suite.
+vi.mock("../../src/components/SelectField", () => ({
+  SelectField: ({
+    id,
+    label,
+    value,
+    options,
+    disabled,
+    onChange,
+  }: ComponentProps<typeof SelectField>) => (
+    <select
+      id={id}
+      aria-label={label}
+      value={value}
+      disabled={disabled}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      {options.map((option) => (
+        <option key={option.key} value={option.key}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+  ),
 }));
 
 beforeEach(() => {
@@ -77,10 +105,18 @@ const proof = JSON.stringify([
   { hash: "ab".repeat(32), source: { kind: "hash" }, createdAt: "100" },
 ]);
 
+async function manualMembers(user: ReturnType<typeof userEvent.setup>) {
+  await user.selectOptions(
+    screen.getByRole("combobox", { name: "Choose records using" }),
+    "manual",
+  );
+}
+
 it("blocks empty and separator-only aggregate checks/submissions, then re-enables with members", async () => {
   const operation = props();
   const user = userEvent.setup();
   render(<AggregatePanel {...operation} />);
+  await manualMembers(user);
   for (const input of ["", " \n\t", " , ,\n "]) {
     fill("Ordered canonical IDs or PDAs", input);
     expect(button("Check members & preview — no fee").disabled).toBe(true);
@@ -252,6 +288,7 @@ it("keeps populated aggregate actions locked while a check or transaction is pen
       }),
   );
   const view = render(<AggregatePanel {...operation} />);
+  await manualMembers(user);
   fill("Ordered canonical IDs or PDAs", "ab".repeat(32));
   await user.click(button("Check members & preview — no fee"));
   expect(button("Create batch + first vote").disabled).toBe(true);

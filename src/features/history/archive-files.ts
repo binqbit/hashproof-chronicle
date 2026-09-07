@@ -29,7 +29,11 @@ export function validateProofFiles(
     throw new Error("Selected files exceed 32 MiB in total.");
 }
 
-function importArchive(contents: string, defaultProgramId: string) {
+function importArchive(
+  contents: string,
+  defaultProgramId: string,
+  rpc?: string,
+) {
   const document: unknown = JSON.parse(contents);
   if (
     document &&
@@ -38,9 +42,15 @@ function importArchive(contents: string, defaultProgramId: string) {
     document.format === ARCHIVE_FORMAT
   ) {
     // Pass the original text so the SDK can reject duplicate JSON keys.
-    return { archive: parseArchive(contents), converted: false };
+    const archive = parseArchive(contents);
+    if (rpc !== undefined && archive.programId !== defaultProgramId)
+      throw new Error("This file belongs to another program.");
+    return { archive, converted: false };
   }
-  const proof = parseProof(contents);
+  const proof = parseProof(
+    contents,
+    rpc === undefined ? undefined : { programId: defaultProgramId, rpc },
+  );
   const programId = Array.isArray(document)
     ? defaultProgramId
     : accountPublicKey(
@@ -50,13 +60,13 @@ function importArchive(contents: string, defaultProgramId: string) {
 }
 
 /** Local file I/O only. The SDK owns graph validation, merging and serialization. */
-export async function mergeProofFiles(
+export async function readArchiveFiles(
   files: readonly File[],
   defaultProgramId: string,
-  signal?: AbortSignal,
+  options: { signal?: AbortSignal; rpc?: string } = {},
 ) {
-  if (files.length < 2)
-    throw new Error("Choose at least two proof files to merge.");
+  const { signal, rpc } = options;
+  if (!files.length) throw new Error("Choose at least one proof file.");
   validateProofFiles(files);
   const archives = [];
   let inputNodes = 0;
@@ -72,7 +82,11 @@ export async function mergeProofFiles(
       if (bytes > MAX_PROOF_FILE_BYTES) throw new Error("File exceeds 16 MiB.");
       if (totalBytes > MAX_PROOF_TOTAL_BYTES)
         throw new Error("Files exceed 32 MiB in total.");
-      const { archive, converted } = importArchive(contents, defaultProgramId);
+      const { archive, converted } = importArchive(
+        contents,
+        defaultProgramId,
+        rpc,
+      );
       inputNodes += Object.keys(archive.nodes).length;
       convertedFiles += Number(converted);
       archives.push(archive);
@@ -85,11 +99,21 @@ export async function mergeProofFiles(
   const archive = mergeArchives(archives[0], ...archives.slice(1));
   return {
     archive,
-    json: stringifyArchive(archive),
     inspection: inspectArchive(archive),
     inputNodes,
     convertedFiles,
   };
+}
+
+export async function mergeProofFiles(
+  files: readonly File[],
+  defaultProgramId: string,
+  signal?: AbortSignal,
+) {
+  if (files.length < 2)
+    throw new Error("Choose at least two proof files to merge.");
+  const result = await readArchiveFiles(files, defaultProgramId, { signal });
+  return { ...result, json: stringifyArchive(result.archive) };
 }
 
 export type MergedProofFiles = Awaited<ReturnType<typeof mergeProofFiles>>;

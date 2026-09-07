@@ -76,7 +76,7 @@ initiating control without changing the current network or history.
 | Inspect      | Look up a **canonical ID or record PDA**, read source/timestamp/votes, navigate to a parent or batch member, export history, or send vote/withdraw/fee-paying `verify` instructions.                                                    |
 | Timestamp    | Hash a file incrementally in the browser, or paste a raw 32-byte value. Preview its Hash-source canonical ID and PDA; register it with a first vote, or inspect it without signing.                                                     |
 | Branch       | Provide a parent ID or PDA and choose a new file version, or paste its 32-byte digest. Check the live parent and preview the child ID/PDA without signing. Optional parent-vote withdrawal requires your vote and can close the parent. |
-| Batch / Pack | Mix ordered IDs and PDAs of live records; check members and preview the result without signing. Aliases of the same record are duplicates. Batch stores IDs; Pack stores a digest, so retain its proof.                                 |
+| Batch / Pack | Import proof files and select/reorder members, or enter IDs and PDAs manually. Check live records before creating the group. Batch stores IDs; Pack needs retained history. |
 | Account      | Commit the current metadata and data of a Solana account. Save the captured snapshot for historical proof use.                                                                                                                          |
 | Restore      | Import proof JSON, load retained history, then check commitments, dependencies, live state and transaction size before submitting proof-only validation or account recreation.                                                          |
 | Proofs       | Select several JSON archives or legacy proof files, merge matching nodes locally, review missing history, and download one SDK archive. No wallet or RPC required. |
@@ -109,6 +109,22 @@ Branch and aggregate inputs and their read-only checks work without a wallet;
 withdrawal checks and all transactions require a connected wallet. Creation
 checks reject already occupied result records and repeat before submission.
 The UI limits an aggregate to 32 members; this does not guarantee it fits a transaction.
+
+Batch / Pack opens in **Proof files** mode. Choose one or more proof exports or
+SDK archives together, select records explicitly, and reorder them with the arrow
+buttons. Dependencies are retained as history, not automatically added as group
+members. Choosing files again replaces the selection and invalidates its preview;
+failed or superseded reads cannot reuse the old members. Import is local and uses
+the same file/count limits as Proofs. Large record lists are paginated.
+Legacy exports must match the selected program/RPC; archives and plain arrays do
+not identify a network, so choose their original network yourself. Selected file
+records must match current timestamps and sources, checked both in the preview
+and the snapshot used to build the transaction. Imported Account snapshots and
+available Pack/member fingerprints are retained for proof collection; incomplete
+history is flagged and may produce a partial proof. Keep the source files.
+**Enter IDs manually** remains available and performs the existing live checks.
+Switching input modes or operation tabs clears the imported selection.
+
 All protocol identities are computed by the SDK. `/records/:id` opens a canonical
 record; old `/hash/:hash` links are interpreted as raw Hash-source digests on the
 currently selected network. Links do not select a network automatically.

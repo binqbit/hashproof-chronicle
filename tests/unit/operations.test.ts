@@ -134,6 +134,19 @@ describe("Application operations using the actual SDK + Anchor IDL", () => {
       )
     ).toBe(true);
   });
+  it.each(["batch", "pack"] as const)(
+    "refuses changed imported members in the %s signing snapshot",
+    async (kind) => {
+      const f = fixture();
+      f.put(parentId, account());
+      const proof = await collectProof(f.client, parentId);
+      f.put(parentId, account(raw, { hash: {} }, 102));
+      await expect(
+        aggregate(f.client, kind, [parentId], proof, proof)
+      ).rejects.toThrow("no longer matches the imported history");
+      expect(f.sent).toHaveLength(0);
+    }
+  );
   it("preserves a confirmed receipt when the follow-up RPC read fails", async () => {
     const f = fixture();
     f.put(parentId, account());

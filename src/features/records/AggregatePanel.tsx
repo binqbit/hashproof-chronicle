@@ -7,17 +7,38 @@ import { useCheck } from "../workspace/use-check";
 import { useNetwork } from "../../contract/network";
 import { checkAggregate } from "./preflight";
 import { SelectField } from "../../components/SelectField";
+import {
+  AggregateProofPicker,
+  type AggregateFileSelection,
+} from "./AggregateProofPicker";
+import { mergeHistory } from "../history/collect-proof";
 
 export function AggregatePanel({ disabled, history, run }: Props) {
   const [kind, setKind] = useState<"batch" | "pack">("batch");
   const [members, setMembers] = useState("");
+  const [inputMode, setInputMode] = useState("files");
+  const [fileSelection, setFileSelection] = useState<AggregateFileSelection>({
+    ids: [],
+    history: [],
+    pending: false,
+    revision: 0,
+  });
   const { client } = useContract();
   const { network, busy } = useNetwork();
+  const input = inputMode === "files" ? fileSelection.ids.join("\n") : members;
+  const importedHistory = inputMode === "files" ? fileSelection.history : [];
   const check = useCheck<Awaited<ReturnType<typeof checkAggregate>>>(
-    JSON.stringify([network.endpoint, kind, members]),
+    JSON.stringify([
+      network.endpoint,
+      kind,
+      input,
+      inputMode,
+      fileSelection.revision,
+    ]),
   );
-  const hasMembers = /[^\s,]/.test(members);
-  const canCheck = hasMembers && !busy && !check.pending;
+  const hasMembers = /[^\s,]/.test(input);
+  const canCheck =
+    hasMembers && !busy && !check.pending && !fileSelection.pending;
   const canSubmit = canCheck && !disabled;
   return (
     <section className="panel">
@@ -31,12 +52,19 @@ export function AggregatePanel({ disabled, history, run }: Props) {
           event.preventDefault();
           if (!canSubmit) return;
           void run(`Create ${kind}`, async (signingClient) => {
-            const result = await checkAggregate(signingClient, kind, members);
+            const retained = mergeHistory(history, importedHistory);
+            const result = await checkAggregate(
+              signingClient,
+              kind,
+              input,
+              importedHistory,
+            );
             return operations.aggregate(
               signingClient,
               kind,
               result.members.map((member) => member.id),
-              history,
+              retained,
+              importedHistory,
             );
           });
         }}
@@ -56,22 +84,49 @@ export function AggregatePanel({ disabled, history, run }: Props) {
             />
           )}
         </Field>
-        <Field
-          label="Ordered canonical IDs or PDAs"
-          hint="IDs accept hex or Base58; PDAs use Base58 or pda:<hex>. One per line or comma-separated, at most 32 members. Aliases count as duplicates."
-        >
+        <Field label="Choose records using">
           {(id) => (
-            <textarea
+            <SelectField
               id={id}
-              rows={6}
-              className="mono"
-              value={members}
-              onChange={(event) => setMembers(event.target.value)}
+              label="Choose records using"
+              value={inputMode}
+              options={[
+                { key: "files", label: "Proof files" },
+                { key: "manual", label: "Enter IDs manually" },
+              ]}
               disabled={busy}
-              required
+              onChange={(value) => {
+                setInputMode(value);
+                setFileSelection({
+                  ids: [],
+                  history: [],
+                  pending: false,
+                  revision: 0,
+                });
+              }}
             />
           )}
         </Field>
+        {inputMode === "files" ? (
+          <AggregateProofPicker disabled={busy} onChange={setFileSelection} />
+        ) : (
+          <Field
+            label="Ordered canonical IDs or PDAs"
+            hint="IDs accept hex or Base58; PDAs use Base58 or pda:<hex>. One per line or comma-separated, at most 32 members. Aliases count as duplicates."
+          >
+            {(id) => (
+              <textarea
+                id={id}
+                rows={6}
+                className="mono"
+                value={members}
+                onChange={(event) => setMembers(event.target.value)}
+                disabled={busy}
+                required
+              />
+            )}
+          </Field>
+        )}
         {kind === "pack" && (
           <Notice>
             Pack does not retain its member list on-chain. Download the
@@ -85,7 +140,10 @@ export function AggregatePanel({ disabled, history, run }: Props) {
           disabled={!canCheck}
           onClick={() => {
             if (canCheck)
-              void check.run(() => checkAggregate(client, kind, members));
+              void check.run(() => {
+                mergeHistory(history, importedHistory);
+                return checkAggregate(client, kind, input, importedHistory);
+              });
           }}
         >
           {check.pending ? "Checking…" : "Check members & preview — no fee"}

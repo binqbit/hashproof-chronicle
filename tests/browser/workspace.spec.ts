@@ -7,6 +7,8 @@ import {
   deriveBranchHash,
   deriveGenesisHashId,
   deriveHashPda,
+  archiveFromProof,
+  stringifyArchive,
 } from "../../src/contract/sdk";
 import { PublicKey } from "@solana/web3.js";
 
@@ -102,6 +104,8 @@ test("disables empty operation inputs and re-enables checks when data is entered
     page.getByRole("button", { name: "Check parent & preview — no fee" }),
   ).toBeEnabled();
   await tabs.getByRole("button", { name: "Batch / Pack", exact: true }).click();
+  await page.getByRole("combobox", { name: "Choose records using" }).click();
+  await page.getByRole("option", { name: "Enter IDs manually", exact: true }).click();
   for (const mode of [
     "Batch — stores ordered member IDs",
     "Pack — digest only",
@@ -191,6 +195,8 @@ test("accepts a PDA in Inspect and previews branches and mixed aggregate members
     0,
   );
   await tabs.getByRole("button", { name: "Batch / Pack", exact: true }).click();
+  await page.getByRole("combobox", { name: "Choose records using" }).click();
+  await page.getByRole("option", { name: "Enter IDs manually", exact: true }).click();
   await page
     .getByLabel("Ordered canonical IDs or PDAs")
     .fill(`${canonical}\n${recordPda()}`);
@@ -269,6 +275,103 @@ test("branches from a previous record and a locally hashed new file version", as
   await page.getByLabel("New file version").setInputFiles(file);
   await expect(page.getByLabel("New payload / file digest")).toHaveValue(
     nextPayload.toString("hex"),
+  );
+});
+
+test("imports Batch and Pack members from proof files without typing IDs", async ({
+  page,
+}, testInfo) => {
+  await rpc(page, await liveHashData());
+  await page.goto("/");
+  await page.getByRole("button", { name: "Batch / Pack", exact: true }).click();
+  const first = {
+    hash: payload.toString("hex"),
+    source: { kind: "hash" as const },
+    createdAt: 1700000000n,
+  };
+  const otherHash = new Uint8Array(32).fill(77);
+  const otherId = Buffer.from(deriveGenesisHashId(otherHash)).toString("hex");
+  const input = page.getByLabel("Import group proof files");
+  await input.setInputFiles([
+    {
+      name: "first.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(
+        JSON.stringify([{ ...first, createdAt: first.createdAt.toString() }]),
+      ),
+    },
+    {
+      name: "combined.json",
+      mimeType: "application/json",
+      buffer: Buffer.from(
+        stringifyArchive(
+          archiveFromProof(program, [
+            first,
+            { hash: otherHash, source: { kind: "hash" }, createdAt: 100n },
+          ]),
+        ),
+      ),
+    },
+  ]);
+  await expect(page.getByLabel("Ordered canonical IDs or PDAs")).toHaveCount(0);
+  const check = page.getByRole("button", {
+    name: "Check members & preview — no fee",
+  });
+  await expect(check).toBeDisabled();
+  await page
+    .getByRole("checkbox", { name: `Select record ${otherId}`, exact: true })
+    .check();
+  await page
+    .getByRole("checkbox", { name: `Select record ${canonical}`, exact: true })
+    .check();
+  await page
+    .getByRole("button", { name: "Move member 2 up", exact: true })
+    .click();
+  await page
+    .getByRole("button", { name: "Remove member 2", exact: true })
+    .click();
+  const members = page
+    .getByRole("list", { name: "Selected group members" })
+    .getByRole("listitem");
+  await expect(members).toHaveCount(1);
+  await expect(members).toContainText(canonical);
+  await check.click();
+  await expect(page.getByText("New batch PDA", { exact: true })).toBeVisible();
+  await page.getByRole("combobox", { name: "Aggregate mode" }).click();
+  await page
+    .getByRole("option", { name: "Pack — digest only", exact: true })
+    .click();
+  await check.click();
+  await expect(page.getByText("New pack PDA", { exact: true })).toBeVisible();
+  await expect(
+    page.getByRole("button", { name: "Create pack + first vote", exact: true }),
+  ).toBeDisabled();
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+  await page.screenshot({
+    path: testInfo.outputPath("aggregate-from-files.png"),
+    fullPage: true,
+  });
+  await input.setInputFiles({
+    name: "old.json",
+    mimeType: "application/json",
+    buffer: Buffer.from(
+      stringifyArchive(
+        archiveFromProof(program, [{ ...first, createdAt: 99n }]),
+      ),
+    ),
+  });
+  await expect(page.getByText("New pack PDA", { exact: true })).toHaveCount(0);
+  await expect(check).toBeDisabled();
+  await page
+    .getByRole("checkbox", { name: `Select record ${canonical}`, exact: true })
+    .check();
+  await check.click();
+  await expect(page.getByRole("alert")).toContainText(
+    "no longer matches the imported history",
   );
 });
 

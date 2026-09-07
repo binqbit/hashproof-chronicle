@@ -13,8 +13,10 @@ import {
   generationFromSource,
   hashSourceKindOf,
   type HashTimestampClient,
+  type RestoreProofInput,
 } from "../../contract/sdk";
 import { hex } from "../workspace/values";
+import { assertMatchingHistory, entryId } from "../history/collect-proof";
 
 export async function checkBranch(
   client: HashTimestampClient,
@@ -58,8 +60,14 @@ export async function checkAggregate(
   client: HashTimestampClient,
   kind: "batch" | "pack",
   input: string,
+  history: RestoreProofInput[] = [],
 ) {
   const members = await resolveMembers(client, input);
+  const retained = new Map(history.map((entry) => [entryId(entry), entry]));
+  for (const member of members) {
+    const saved = retained.get(member.id);
+    if (saved) assertMatchingHistory(member.account, saved);
+  }
   const fingerprints = members.map(({ account }) => ({
     hash: account.hash,
     kind: hashSourceKindOf(decodeHashSource(account.source)),

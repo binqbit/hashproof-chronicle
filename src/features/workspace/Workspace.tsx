@@ -107,6 +107,7 @@ function NetworkWorkspace() {
             Hashproof<small>HASH TIMESTAMP · v{PROGRAM_VERSION}</small>
           </span>
         </a>
+        <DocsLink disabled={busy} />
         <div className="connection-controls">
           <NetworkPicker
             id="network-selector"
@@ -134,7 +135,6 @@ function NetworkWorkspace() {
               Record a commitment, build its history, and verify the links on
               Solana. Your files stay with you.
             </p>
-            <DocsLink disabled={busy} />
           </div>
           <div className="protocol-note">
             <span

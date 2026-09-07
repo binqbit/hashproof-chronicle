@@ -475,6 +475,73 @@ async function chooseDoc(page: Page, id: string, label: string) {
   await expect(page).toHaveURL(`/docs/${id}`);
 }
 
+test("keeps documentation in the top header without crowding network or wallet controls", async ({
+  page,
+}, testInfo) => {
+  await rpc(page);
+  await page.goto("/");
+  const header = page.getByRole("banner");
+  const docs = header.getByRole("link", { name: "Docs & guides", exact: true });
+  await expect(docs).toHaveCount(1);
+  await expect(docs).toHaveAttribute("href", "/docs/getting-started");
+  await expect(
+    page
+      .getByRole("main")
+      .getByRole("link", { name: "Docs & guides", exact: true }),
+  ).toHaveCount(0);
+
+  const controls = [
+    header.getByRole("link", { name: "Hashproof home", exact: true }),
+    docs,
+    header.getByRole("combobox", { name: "Network", exact: true }),
+    header.getByRole("button", { name: "Select Wallet", exact: true }),
+  ];
+  for (const width of [1280, 921, 920, 768, 621, 620, 320]) {
+    await page.setViewportSize({ width, height: 800 });
+    const bounds = await Promise.all(
+      controls.map(async (control) => {
+        await expect(control).toBeVisible();
+        return (await control.boundingBox())!;
+      }),
+    );
+    const headerBounds = (await header.boundingBox())!;
+    expect(
+      Math.abs(bounds[0].y + bounds[0].height / 2 - bounds[1].y - bounds[1].height / 2),
+      `Brand and Docs should share a row at ${width}px`,
+    ).toBeLessThan(1);
+    for (const [index, box] of bounds.entries()) {
+      expect(box.x).toBeGreaterThanOrEqual(0);
+      expect(box.x + box.width).toBeLessThanOrEqual(width);
+      expect(box.y + box.height).toBeLessThanOrEqual(
+        headerBounds.y + headerBounds.height,
+      );
+      for (const other of bounds.slice(index + 1)) {
+        const separate =
+          box.x + box.width <= other.x ||
+          other.x + other.width <= box.x ||
+          box.y + box.height <= other.y ||
+          other.y + other.height <= box.y;
+        expect(separate, `Header controls must not overlap at ${width}px`).toBe(
+          true,
+        );
+      }
+    }
+    expect(bounds[1].height).toBeGreaterThanOrEqual(44);
+    expect(
+      await page.evaluate(
+        () => document.documentElement.scrollWidth <= innerWidth,
+      ),
+    ).toBe(true);
+    if (width === 320 || width === 1280)
+      await header.screenshot({
+        path: testInfo.outputPath(`header-docs-${width}.png`),
+      });
+  }
+  await docs.focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL("/docs/getting-started");
+});
+
 test("opens routed documentation and preserves the selected record and draft on return", async ({
   page,
 }, testInfo) => {

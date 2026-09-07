@@ -58,7 +58,9 @@ The group definitions and tool type live in `src/features/workspace/navigation.t
 `WorkspaceNavigation.tsx` handles presentation, while `Workspace.tsx` owns the
 active tool and operation state. Navigation does not call the contract.
 
-**Docs & guides**, above the navigation, opens `/docs/getting-started`.
+**Docs & guides**, in the top header alongside the brand and connection controls,
+opens `/docs/getting-started`. On small screens the button reads **Docs**, with
+network and wallet controls on a separate header row.
 Documentation has a left-hand topic menu on desktop and a topic dropdown on
 mobile, with one article shown at a time. Topics
 have their own `/docs/:section` links and support reload and browser back/forward.

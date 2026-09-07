@@ -1,0 +1,52 @@
+name: hashproof-chronicle
+
+services:
+  frontend:
+    build:
+      context: .
+      dockerfile: infra/frontend/Dockerfile
+      args:
+        VITE_SOLANA_NETWORK: ${VITE_SOLANA_NETWORK:-localnet}
+        VITE_SOLANA_RPC_URL: ${VITE_SOLANA_RPC_URL:-}
+    ports:
+      - "127.0.0.1:8080:80"
+    depends_on:
+      localnet:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "/dev/null", "http://127.0.0.1/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    stop_grace_period: 10s
+
+  localnet:
+    platform: linux/amd64
+    # Agave 4.0.3 requires io_uring; retain Moby's other syscall restrictions.
+    security_opt:
+      - seccomp=./infra/localnet/seccomp.json
+    build:
+      context: .
+      dockerfile: infra/localnet/Dockerfile
+      target: localnet
+    ports:
+      - "127.0.0.1:8899:8899"
+      - "127.0.0.1:8900:8900"
+    volumes:
+      - test-ledger:/ledger
+      - type: bind
+        source: ./infra/localnet/entrypoint.sh
+        target: /usr/local/bin/localnet-entrypoint
+        read_only: true
+        bind:
+          create_host_path: false
+    healthcheck:
+      test: ["CMD", "solana", "--url", "http://127.0.0.1:8899", "cluster-version"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+      start_period: 20s
+    stop_grace_period: 30s
+
+volumes:
+  test-ledger:

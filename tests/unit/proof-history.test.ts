@@ -41,6 +41,54 @@ function record(
 }
 
 describe("Portable proofs and retained history", () => {
+  it("normalizes encoded hashes and public keys while preserving raw hex payloads", () => {
+    const base58 = new PublicKey(raw).toBase58();
+    const entries = parseProof(
+      JSON.stringify([
+        {
+          hash: base58,
+          source: {
+            kind: "branch",
+            previousHashId: base58,
+            payload: hex(raw).toUpperCase(),
+            generation: "1",
+          },
+          createdAt: "12",
+          params: {
+            kind: "branch",
+            parent: {
+              hash: base58,
+              sourceKind: 0,
+              generation: "0",
+              createdAt: "11",
+            },
+          },
+        },
+        {
+          hash: base58,
+          source: { kind: "hash" },
+          createdAt: "11",
+          params: { kind: "hash", payload: "abcd" },
+        },
+        {
+          hash: base58,
+          source: { kind: "account", account: hex(raw) },
+          createdAt: "13",
+        },
+      ]),
+    );
+    expect(to32Bytes(entries[0].hash)).toEqual(raw);
+    expect(entries[1].params).toEqual({ kind: "hash", payload: [171, 205] });
+    const output = JSON.parse(
+      proofJson(entries, PROGRAM_ID.toBuffer().toString("hex"), rpc),
+    );
+    expect(output.programId).toBe(PROGRAM_ID.toBase58());
+    expect(output.proof[0].hash).toBe(hex(raw));
+    expect(output.proof[0].source.previousHashId).toBe(hex(raw));
+    expect(output.proof[0].params.parent.hash).toBe(hex(raw));
+    expect(output.proof[2].source.account).toBe(base58);
+    expect(parseProof(JSON.stringify(output))).toEqual(entries);
+  });
   it("round-trips hashes, keys, snapshots and full-width integers losslessly", () => {
     const key = new PublicKey(raw);
     const entry: RestoreProofInput = {

@@ -1,7 +1,7 @@
 import { useState } from "react";
 import type { OperationProps as Props } from "../workspace/operation-types";
 import * as operations from "../workspace/operations";
-import { PublicKey } from "@solana/web3.js";
+import { accountPublicKey } from "../../contract/sdk";
 import { Field, Notice } from "../workspace/fields";
 import { errorMessage } from "../workspace/values";
 
@@ -20,7 +20,7 @@ export function AccountPanel({ disabled, run }: Props) {
           event.preventDefault();
           setError("");
           try {
-            const address = new PublicKey(target.trim());
+            const address = accountPublicKey(target.trim());
             void run("Commit account snapshot", (client) =>
               operations.accountSnapshot(client, address),
             );
@@ -29,7 +29,10 @@ export function AccountPanel({ disabled, run }: Props) {
           }
         }}
       >
-        <Field label="Target Solana account address">
+        <Field
+          label="Target Solana account address"
+          hint="Public key in Base58 or 64-character hex. Addresses are displayed in Base58."
+        >
           {(id) => (
             <input
               id={id}

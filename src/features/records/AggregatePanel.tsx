@@ -54,7 +54,7 @@ export function AggregatePanel({ disabled, history, run }: Props) {
         </Field>
         <Field
           label="Ordered canonical IDs or PDAs"
-          hint="Mix IDs and PDAs, one per line or comma-separated. At most 32 members; aliases of the same record count as duplicates."
+          hint="IDs accept hex or Base58; PDAs use Base58 or pda:<hex>. One per line or comma-separated, at most 32 members. Aliases count as duplicates."
         >
           {(id) => (
             <textarea

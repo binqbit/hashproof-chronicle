@@ -84,7 +84,13 @@ the workspace and its hash job mounted. Manually editing the digest
 clears the filename association. Branch creates a linked child, not an in-place
 replacement of its parent; parent-vote withdrawal is off by default.
 
-Canonical IDs use 64 hexadecimal characters; PDAs use base58. A PDA lookup checks
+Displayed/exported hashes and canonical IDs use lowercase hex; public keys and
+PDAs use Base58. Hash inputs accept 64 hexadecimal characters (no `0x`, either
+case) or Base58, decoding to exactly 32 bytes. In record lookups bare hex means
+a canonical ID; bare Base58 checks both the ID and PDA interpretations. If both
+identify live records, specify `id:<value>` or `pda:<value>` instead. These prefixes
+accept either encoding, including hex PDAs. A missing Base58 ID needs `id:`.
+A PDA lookup checks
 program ownership, account type and the SDK-derived address before recovering
 its ID. A closed PDA cannot reveal its former ID: use retained history instead.
 Branch and aggregate inputs and their read-only checks work without a wallet;
@@ -121,8 +127,9 @@ entries and lacks the new anchor's timestamp. Complete the history before use.
 
 Proof exports contain `format: "hash-timestamp-proof-v1"`, program/RPC metadata,
 and a `proof` array. Imports accept this envelope or a normalized SDK-shaped
-array. Hashes/data accept byte arrays or hex; public keys accept base58 or 32-byte
-representations. Use decimal strings for large `i64`/`u64` values. Fingerprint
+array. Fixed32 hashes accept byte arrays, hex or Base58; arbitrary payload/data
+strings remain hex-only (including Restore Hash `params.payload`). Public keys
+accept Base58, hex or byte arrays. Use decimal strings for large `i64`/`u64` values. Fingerprint
 `sourceKind` is numeric (`0` Hash, `1` Account, `2` Branch, `3` Batch, `4` Pack).
 Exported network metadata must match the selected endpoint; plain arrays have no
 network guard, so verify their origin yourself. Equivalent RPC aliases can be

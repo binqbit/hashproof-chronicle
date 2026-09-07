@@ -29,11 +29,28 @@ describe("Canonical ID / PDA resolution", () => {
     const byPda = await resolveLiveRecord(f.client, pda.toBase58());
     expect(byId).toEqual(byPda);
     expect(byId.id).toBe(entryId(entry));
+    const base58Id = new PublicKey(
+      Buffer.from(entryId(entry), "hex"),
+    ).toBase58();
+    for (const value of [
+      base58Id,
+      `id:${base58Id}`,
+      `id:${entryId(entry)}`,
+      `pda:${pda}`,
+      `pda:${pda.toBuffer().toString("hex")}`,
+    ]) {
+      expect(await resolveLiveRecord(f.client, value)).toEqual(byId);
+    }
   });
   it("distinguishes missing canonical records from non-invertible closed PDAs", async () => {
     const f = recordFixture();
     const id = entryId(hashEntry());
     expect((await resolveRecord(f.client, id)).account).toBeNull();
+    const base58Id = new PublicKey(Buffer.from(id, "hex")).toBase58();
+    expect(await resolveRecord(f.client, `id:${base58Id}`)).toEqual(
+      await resolveRecord(f.client, id),
+    );
+    await expect(resolveRecord(f.client, base58Id)).rejects.toThrow("use id:");
     await expect(
       resolveRecord(f.client, f.client.hashPda(id).toBase58()),
     ).rejects.toThrow("closed PDA");
@@ -75,6 +92,56 @@ describe("Canonical ID / PDA resolution", () => {
       "RPC unavailable",
     );
   });
+  it("rejects two valid Base58 interpretations until the user specifies a type", async () => {
+    const f = recordFixture();
+    const first = hashEntry(1),
+      second = hashEntry(2);
+    const secondId = entryId(second);
+    const sharedValue = new PublicKey(Buffer.from(secondId, "hex"));
+    const secondPda = f.client.hashPda(secondId);
+    const original = f.client.hashPda.bind(f.client);
+    // Deliberately force this otherwise cryptographically unlikely address relationship.
+    vi.spyOn(f.client, "hashPda").mockImplementation((id) =>
+      typeof id === "string" && id === entryId(first)
+        ? sharedValue
+        : original(id),
+    );
+    await f.put(first);
+    await f.put(second);
+    await expect(
+      resolveRecord(f.client, sharedValue.toBase58()),
+    ).rejects.toThrow("Ambiguous");
+    expect((await resolveRecord(f.client, `pda:${sharedValue}`)).id).toBe(
+      entryId(first),
+    );
+    expect((await resolveRecord(f.client, `id:${sharedValue}`)).pda).toEqual(
+      secondPda,
+    );
+  });
+  it("does not hide a candidate RPC failure behind another live interpretation", async () => {
+    const f = recordFixture(),
+      entry = hashEntry();
+    const pda = await f.put(entry);
+    f.read.mockImplementation(async (key) => {
+      if (key.equals(pda)) return f.records.get(pda.toBase58())!;
+      throw new Error("RPC unavailable");
+    });
+    await expect(resolveRecord(f.client, pda.toBase58())).rejects.toThrow(
+      "RPC unavailable",
+    );
+  });
+  it("does not let a foreign direct address mask a valid Base58 canonical ID", async () => {
+    const f = recordFixture(),
+      entry = hashEntry();
+    const pda = await f.put(entry);
+    const id = entryId(entry);
+    const base58Id = new PublicKey(Buffer.from(id, "hex")).toBase58();
+    f.records.set(base58Id, {
+      ...f.records.get(pda.toBase58())!,
+      owner: PublicKey.default,
+    });
+    expect((await resolveRecord(f.client, base58Id)).id).toBe(id);
+  });
   it("preserves mixed member order and detects duplicate aliases", async () => {
     const f = recordFixture();
     const first = hashEntry(1),
@@ -88,6 +155,14 @@ describe("Canonical ID / PDA resolution", () => {
     ).toEqual([entryId(second), entryId(first)]);
     await expect(
       resolveMembers(f.client, `${entryId(first)},${pda}`),
+    ).rejects.toThrow("same record");
+    await expect(
+      resolveMembers(
+        f.client,
+        `${entryId(first)},${new PublicKey(
+          Buffer.from(entryId(first), "hex"),
+        )}`,
+      ),
     ).rejects.toThrow("same record");
     await expect(resolveMembers(f.client, "")).rejects.toThrow("at least one");
     await expect(

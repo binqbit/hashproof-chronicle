@@ -16,7 +16,12 @@ import {
   stringifyArchive,
   IDL,
 } from "../../src/contract/sdk";
-import { hashFile, hex, memberIds } from "../../src/features/workspace/values";
+import {
+  hashFile,
+  hashInput,
+  hex,
+  memberIds,
+} from "../../src/features/workspace/values";
 
 const digest = (...parts: Uint8Array[]) => {
   const h = nodeHash("sha256");
@@ -31,6 +36,24 @@ const i64 = (value: bigint) => {
 };
 
 describe("Browser SDK compatibility", () => {
+  it("accepts hex and Base58 hash inputs and rejects member aliases", () => {
+    const base58 = new PublicKey(raw).toBase58();
+    expect(hashInput(` ${base58} `)).toEqual(hashInput(hex(raw).toUpperCase()));
+    expect(hex(deriveGenesisHashId(base58))).toBe(
+      hex(deriveGenesisHashId(raw))
+    );
+    expect(() => memberIds(`${hex(raw)},${base58}`)).toThrow("unique");
+    const archive = archiveFromProof(IDL.address, [
+      {
+        hash: base58,
+        source: { kind: "account", account: hex(raw) },
+        createdAt: 100n,
+      },
+    ]);
+    const node = Object.values(archive.nodes)[0];
+    expect(node.hash).toBe(hex(raw));
+    expect(node.source).toEqual({ kind: "account", account: base58 });
+  });
   it("imports original Hash payloads and round-trips the SDK archive through the browser crypto adapter", () => {
     const payload = new Uint8Array([1, 2, 3]);
     const hash = nodeHash("sha256").update(payload).digest();

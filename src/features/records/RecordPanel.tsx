@@ -84,7 +84,7 @@ export function RecordPanel({
       >
         <Field
           label="Canonical ID or account PDA"
-          hint="64-character hexadecimal canonical ID or base58 record PDA. Not a raw file hash."
+          hint="Canonical ID in hex or Base58, or a Base58 record PDA. Use id: or pda: to specify the type (including hex PDAs). Not a raw file hash."
         >
           {(id) => (
             <input

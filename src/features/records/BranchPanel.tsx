@@ -65,7 +65,7 @@ export function BranchPanel({ disabled, selected, history, run }: Props) {
       >
         <Field
           label="Parent canonical ID or PDA"
-          hint="Use a live record's hexadecimal ID or base58 PDA."
+          hint="Live record ID in hex or Base58, or its Base58 PDA. Use id: or pda: to specify the type, including hex PDAs."
         >
           {(id) => (
             <input

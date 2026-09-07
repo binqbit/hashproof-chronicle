@@ -2,7 +2,7 @@ import { z } from "zod";
 import { BN } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
 import type { RestoreProofInput } from "../../contract/sdk";
-import { accountPublicKey } from "../../contract/sdk";
+import { accountPublicKey, to32Bytes } from "../../contract/sdk";
 import { hex } from "../workspace/values";
 
 const byteArray = z.array(z.number().int().min(0).max(255));
@@ -13,10 +13,17 @@ const bytes = z
       ? Array.from(value.match(/../g) || [], (byte) => parseInt(byte, 16))
       : value,
   );
-const hash = bytes.refine(
-  (value) => value.length === 32,
-  "Expected exactly 32 bytes",
-);
+const hash = z.union([z.string(), byteArray]).transform((value, ctx) => {
+  try {
+    return to32Bytes(value);
+  } catch {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "Expected 32-byte hash in hex, Base58 or a byte array",
+    });
+    return z.NEVER;
+  }
+});
 const integer = z
   .union([z.string().regex(/^-?\d+$/), z.number().int().safe()])
   .transform(BigInt);
@@ -88,7 +95,7 @@ const params = z.discriminatedUnion("kind", [
     .object({ kind: z.literal("pack"), members: z.array(fingerprint).min(1) })
     .strict(),
 ]);
-const proof = z
+const proofSchema = z
   .array(
     z
       .object({
@@ -134,7 +141,7 @@ export function parseProof(
       "This proof export belongs to another program or RPC. Select its original network first.",
     );
   }
-  return proof.parse(
+  return proofSchema.parse(
     Array.isArray(envelope) ? envelope : envelope.proof,
   ) as RestoreProofInput[];
 }
@@ -160,9 +167,9 @@ export function proofJson(
   return JSON.stringify(
     {
       format: "hash-timestamp-proof-v1",
-      programId,
+      programId: accountPublicKey(programId).toBase58(),
       rpc,
-      proof: portable(proof),
+      proof: portable(proofSchema.parse(portable(proof))),
     },
     null,
     2,

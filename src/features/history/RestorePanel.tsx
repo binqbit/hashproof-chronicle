@@ -74,7 +74,7 @@ export function RestorePanel({
       />
       <Field
         label="Proof chain JSON"
-        hint="Portable proof export or SDK-shaped array. Use decimal strings for large integers; byte arrays or hex for hashes/data."
+        hint="Portable proof export or SDK-shaped array. Hashes accept hex, Base58 or byte arrays; raw payload/data accepts hex or byte arrays. Use decimal strings for large integers."
       >
         {(id) => (
           <textarea

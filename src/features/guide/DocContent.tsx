@@ -125,6 +125,14 @@ const content: Record<DocTopicId, ReactNode> = {
         an unconverted raw file digest.
       </p>
       <p>
+        Hash inputs accept hex or Base58. Results and SDK archives use lowercase
+        hex for hashes/IDs and Base58 for public keys/PDAs. In record lookups,
+        bare hex means an ID; Base58 is checked as both an ID and a PDA. Use
+        <code>id:</code> or <code>pda:</code> before either encoding to specify
+        its type. A missing Base58 ID needs <code>id:</code>; a closed PDA alone
+        cannot reveal its historical ID.
+      </p>
+      <p>
         Batch and Pack take ordered live members; changing their order changes
         the result. Batch stores member IDs; Pack stores a digest of member
         fingerprints, so it cannot reveal a missing member list. Check the

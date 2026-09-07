@@ -39,7 +39,7 @@ export function FileDigestFields({
       )}
       <Field
         label={inputLabel}
-        hint="64 hexadecimal characters, without 0x. Filled automatically from the file, or entered manually."
+        hint="32-byte hash in hex (64 characters, without 0x) or Base58. Files fill this field with hex automatically."
       >
         {(id) => (
           <input

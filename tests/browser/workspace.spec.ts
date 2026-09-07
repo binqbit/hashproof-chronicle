@@ -102,6 +102,7 @@ test("accepts a PDA in Inspect and previews branches and mixed aggregate members
     "Batch / Pack",
     "Account",
     "Restore",
+    "Proofs",
   ]);
   await expect(
     tabs.getByRole("button", { name: "Inspect", exact: true }),

@@ -45,7 +45,7 @@ Creation and history operations follow it. **Docs & guides**, above the operatio
 tabs, opens `/docs/getting-started`. Documentation has a left-hand topic menu on
 desktop and a topic dropdown on mobile, with one article shown at a time. Topics
 have their own `/docs/:section` links and support reload and browser back/forward.
-The guide covers a quick start, use cases, identifiers, Branch and Restore,
+The guide covers a quick start, use cases, identifiers, Branch, Restore, proof files,
 votes, wallet behavior and developer resources. Unknown topic links show a
 not-found message with a link back to Getting started.
 The UI retains the original dark, purple/cyan theme and background artwork across
@@ -75,6 +75,7 @@ initiating control without changing the current network or history.
 | Batch / Pack | Mix ordered IDs and PDAs of live records; check members and preview the result without signing. Aliases of the same record are duplicates. Batch stores IDs; Pack stores a digest, so retain its proof.                                 |
 | Account      | Commit the current metadata and data of a Solana account. Save the captured snapshot for historical proof use.                                                                                                                          |
 | Restore      | Import proof JSON, load retained history, then check commitments, dependencies, live state and transaction size before submitting proof-only validation or account recreation.                                                          |
+| Proofs       | Select several JSON archives or legacy proof files, merge matching nodes locally, review missing history, and download one SDK archive. No wallet or RPC required. |
 
 A raw file hash, a canonical record ID and a Solana PDA are different values.
 Timestamp and Branch share incremental, local SHA-256 hashing with progress and
@@ -117,7 +118,7 @@ Collection follows live ancestors or imported historical entries. It validates
 derived commitments with SDK helpers and stops if history is unavailable. A Pack
 cannot reveal its missing member list. An account's present state cannot replace
 a changed historical snapshot. Large or incomplete histories may need to be
-assembled outside this UI using the SDK.
+assembled with the [Proofs tab](#merge-proof-files) or the SDK.
 
 Confirmed transaction receipts survive auxiliary proof-collection failures. When
 possible, a partial history export retains captured parent/member fingerprints;
@@ -169,6 +170,44 @@ entries and 2 MB. These are browser limits, **not transaction-size guarantees**.
 The SDK submits a single transaction; large chains/snapshots can exceed Solana
 limits. No automatic splitting or fabricated history is performed.
 
+## Merge proof files
+
+Open **Proofs**, select two or more JSON files, and click **Merge files**. Further
+selections append files to the list; individual files can be removed. Download
+the result with **Download merged JSON**. Changing the selection invalidates the
+previous result. Clearing the selection cancels an active merge. Switching
+operation tabs or opening Docs preserves the selection/result; reloading or
+switching networks clears them. Source files are never modified.
+
+The tab accepts SDK `hash-timestamp-archive` v1 files, legacy
+`hash-timestamp-proof-v1` exports, and SDK-shaped proof arrays. Legacy exports
+retain their program ID during conversion; plain arrays use the app's configured
+program ID. Their RPC metadata is intentionally not carried into the archive.
+Legacy files must individually contain all nodes referenced by supplied
+fingerprints; incomplete legacy exports that cannot be converted are rejected
+with the filename, not silently stripped of their proof data.
+
+SDK validation owns merging: identical historical nodes deduplicate, missing
+witnesses may be enriched, and member order is preserved. Different program IDs,
+conflicting timestamps/incarnations or witnesses, malformed JSON and invalid
+commitments reject the entire merge. No conflicting record is overwritten and
+no partial-success download is offered. Partial SDK archives are allowed: the UI
+reports missing references/witnesses, and the output can be merged with more
+history later. Local checks do not verify live anchors or on-chain existence.
+
+Browser limits are 32 files, 16 MiB per file and 32 MiB of inputs total, checked
+before reading. Legacy inputs also retain the 2 MB / 64-entry parser limit.
+The SDK enforces a 16 MiB / 10,000-node output limit. Files stay in browser memory;
+merging needs no wallet, RPC calls or transaction. The workspace's normal network
+status check is independent of this local operation.
+
+The downloaded `hash-timestamp-archive.json` uses the
+[SDK archive format](../hash-timestamp/docs/archive.md), including lowercase hex
+hashes and Base58 public keys/PDAs, without filenames or network metadata. It is
+not a ready-to-submit proof chain. Use the SDK archive planner for restoration;
+the **Restore** tab still imports the legacy proof format. Verify the original
+network before performing any on-chain operation.
+
 ## SDK and IDL synchronization
 
 The source of truth is the initialized, explicitly chosen `hash-timestamp/`
@@ -204,7 +243,7 @@ boundary and package versions, then sync, test and build.
 | `src/contract/`                 | SDK entry, verified ID/PDA resolution, provider/network setup, browser SHA-256 adapter   |
 | `src/features/records/`         | Record forms, reads and user confirmations                                               |
 | `src/features/guide/`           | In-app user documentation and practical workflows                                        |
-| `src/features/history/`         | Portable JSON, proof-graph preflight, live restore checks, collection and restore screen |
+| `src/features/history/`         | Portable JSON/file merging, proof-graph preflight, live restore checks, collection and history screens |
 | `src/features/workspace/`       | Screen orchestration, transaction lock/receipts and application operations               |
 
 The SDK owns hashes, PDAs, account decoding, instruction construction and restore
@@ -215,8 +254,9 @@ not reimplement protocol formulas or make fake wallet providers for reads.
 Creation receipts also retain the SDK's one-node `archive`; register/branch now
 return `{ signature, archive }`. The SDK's versioned node graph and automatic
 restore planner are documented in the [archive guide](../hash-timestamp/docs/archive.md).
-The existing UI proof import/export remains its separate legacy proof format;
-an SDK archive is not accepted there yet. A confirmed `ArchiveCaptureError` keeps
+Record/receipt proof exports and Restore import use the separate legacy proof
+format. The Proofs tab accepts those exports and SDK archives and writes SDK
+archives; it does not change the Restore input format. A confirmed `ArchiveCaptureError` keeps
 the transaction receipt visible with a warning; uncertain submissions retain the
 signature in the error and must be checked before retrying.
 

@@ -6,6 +6,27 @@ import { FilePicker } from "../../src/features/workspace/FilePicker";
 
 afterEach(cleanup);
 
+it("returns all files in multiple mode and permits selecting the same batch again", async () => {
+  const onSelect = vi.fn();
+  const user = userEvent.setup();
+  render(
+    <FilePicker
+      multiple
+      label="Proof files"
+      prompt="Choose proofs"
+      hint="JSON"
+      onSelect={onSelect}
+    />,
+  );
+  const input = screen.getByLabelText("Proof files") as HTMLInputElement;
+  const files = [new File(["{}"], "a.json"), new File(["{}"], "b.json")];
+  await user.upload(input, files);
+  await user.upload(input, files);
+  expect(onSelect).toHaveBeenCalledTimes(2);
+  expect(onSelect).toHaveBeenLastCalledWith(files);
+  expect(input.value).toBe("");
+});
+
 it("keeps a named native input and permits selecting the same proof again", async () => {
   const onSelect = vi.fn();
   const user = userEvent.setup();

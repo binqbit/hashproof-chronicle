@@ -10,6 +10,7 @@ import {
   History,
   Search,
   Database,
+  Files,
 } from "lucide-react";
 import { PROGRAM_ID, PROGRAM_VERSION } from "../../contract/client";
 import { explorerUrl, useNetwork } from "../../contract/network";
@@ -23,6 +24,7 @@ import { AccountPanel } from "../records/AccountPanel";
 import { AggregatePanel } from "../records/AggregatePanel";
 import { BranchPanel } from "../records/BranchPanel";
 import { RestorePanel } from "../history/RestorePanel";
+import { ProofsPanel } from "../history/ProofsPanel";
 import { DocsLink } from "../guide/DocsLink";
 import { NetworkPicker } from "../../components/NetworkPicker";
 import { ConfirmationDialog } from "../../components/ConfirmationDialog";
@@ -40,6 +42,7 @@ const tabs = [
   { key: "aggregate", label: "Batch / Pack", icon: Layers },
   { key: "account", label: "Account", icon: Database },
   { key: "restore", label: "Restore", icon: History },
+  { key: "proofs", label: "Proofs", icon: Files },
 ] as const;
 type Tab = (typeof tabs)[number]["key"];
 
@@ -247,6 +250,9 @@ function NetworkWorkspace() {
             {tab === "restore" && (
               <RestorePanel {...props} onHistory={retain} />
             )}
+            <div hidden={tab !== "proofs"}>
+              <ProofsPanel />
+            </div>
           </div>
           <aside className="sidebar">
             <section className="panel guide">

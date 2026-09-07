@@ -3,6 +3,7 @@ import {
   Fingerprint,
   GitBranch,
   History,
+  Files,
   Layers,
   Lightbulb,
   Rocket,
@@ -57,6 +58,14 @@ export const docTopics = [
     description:
       "Keep your evidence, check its links, and restore records when possible.",
     icon: History,
+  },
+  {
+    id: "proofs",
+    label: "Proof files",
+    title: "Combine your proof files",
+    description:
+      "Merge retained history into one portable SDK archive, entirely in your browser.",
+    icon: Files,
   },
   {
     id: "wallet",

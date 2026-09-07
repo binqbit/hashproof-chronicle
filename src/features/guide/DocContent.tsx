@@ -182,6 +182,50 @@ const content: Record<DocTopicId, ReactNode> = {
       </p>
     </>
   ),
+  proofs: (
+    <>
+      <ol>
+        <li>
+          Open the Proofs tab. Choose at least two JSON files together, or add
+          them in several selections.
+        </li>
+        <li>Review the file list and remove anything you do not want to include.</li>
+        <li>
+          Click “Merge files”. Matching nodes are combined; contradictory
+          history or different program IDs stop the merge.
+        </li>
+        <li>
+          Review the node count and any missing-history warnings, then click
+          “Download merged JSON”. Keep the downloaded file as your backup.
+        </li>
+      </ol>
+      <p>
+        SDK archives and legacy proof exports from this frontend are accepted.
+        Legacy proof arrays use the app's program ID; envelopes keep their own
+        program ID. Legacy files must contain the nodes needed to check any
+        supplied fingerprints. Nothing is fetched or invented to fill gaps.
+      </p>
+      <p>
+        A partial SDK archive is still useful: save it and merge more history
+        later. The file picker allows up to 32 files, 16 MiB per file and 32 MiB
+        total. Legacy proof inputs retain their 2 MB / 64-entry limit. The SDK
+        checks the resulting archive's 16 MiB / 10,000-node limit.
+      </p>
+      <p>
+        The output uses <code>hash-timestamp-archive</code>, with hex hashes and
+        Base58 addresses. It does not store RPC metadata or file names, and
+        local validation is not an on-chain existence proof. No wallet, network
+        connection or transaction is required for merging.
+      </p>
+      <p>
+        Use the SDK archive planner for restoration from this file. The Restore
+        tab still accepts legacy proof chains, not SDK archives. Check the
+        original network before using any history on-chain. File selections and
+        results remain when switching operation tabs or opening Docs, but are
+        cleared on reload or network changes.
+      </p>
+    </>
+  ),
   wallet: (
     <>
       <p>

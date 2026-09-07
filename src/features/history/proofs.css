@@ -1,0 +1,37 @@
+.proof-file-list {
+  list-style: none;
+  padding: 0;
+  margin: 18px 0;
+  display: grid;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+}
+.proof-file-list li {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: hsl(var(--primary) / 5%);
+  border: 1px solid hsl(var(--primary) / 20%);
+  border-radius: 10px;
+}
+.proof-file-list li > svg {
+  flex-shrink: 0;
+  color: hsl(var(--primary));
+}
+.proof-file-list li > div {
+  min-width: 0;
+  flex: 1;
+}
+.proof-file-list strong {
+  display: block;
+  font-size: 0.83rem;
+  overflow-wrap: anywhere;
+}
+.proof-file-list small {
+  color: hsl(var(--muted-foreground));
+}
+.proof-file-list button {
+  flex-shrink: 0;
+}

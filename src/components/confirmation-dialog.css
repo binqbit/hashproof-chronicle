@@ -1,0 +1,87 @@
+.confirmation-dialog[role="alertdialog"] {
+  width: calc(100vw - 32px);
+  max-width: 460px;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  gap: 20px;
+  padding: 28px;
+  border: 1px solid hsl(var(--primary-glow) / 50%);
+  border-radius: 18px;
+  background: var(--gradient-card);
+  box-shadow:
+    var(--shadow-card),
+    0 0 45px hsl(var(--primary) / 22%);
+}
+.confirmation-icon {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border: 1px solid hsl(var(--primary-glow) / 40%);
+  border-radius: 13px;
+  background: hsl(var(--primary) / 20%);
+  color: hsl(var(--link));
+}
+.confirmation-heading h2 {
+  margin: 10px 0;
+  font-size: 1.3rem;
+  line-height: 1.35;
+  background: var(--gradient-title);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+.confirmation-heading p {
+  margin: 0;
+  font-size: 0.86rem;
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.confirmation-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+  padding-top: 20px;
+  border-top: 1px solid hsl(var(--primary) / 25%);
+}
+.confirmation-actions button {
+  min-height: 44px;
+  height: auto;
+  margin: 0;
+  padding: 10px 16px;
+  border-radius: 9px;
+  white-space: normal;
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+.confirmation-actions .confirmation-cancel {
+  border: 1px solid hsl(var(--primary-glow) / 35%);
+  background: hsl(var(--secondary));
+  color: hsl(var(--foreground));
+}
+.confirmation-actions .confirmation-confirm {
+  border: 1px solid hsl(var(--primary-glow) / 60%);
+  background: var(--gradient-primary);
+  color: hsl(var(--foreground));
+  box-shadow: 0 0 18px hsl(var(--primary) / 20%);
+}
+.confirmation-actions .confirmation-confirm:hover:not(:disabled) {
+  background: var(--gradient-primary);
+  border-color: hsl(var(--primary-glow));
+  box-shadow: 0 0 24px hsl(var(--primary) / 35%);
+}
+@media (max-width: 420px) {
+  .confirmation-dialog[role="alertdialog"] {
+    padding: 22px;
+  }
+  .confirmation-actions button {
+    flex: 1 1 110px;
+  }
+}
+@media (forced-colors: active) {
+  .confirmation-heading h2 {
+    background: none;
+    color: CanvasText;
+  }
+}

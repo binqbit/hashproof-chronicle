@@ -1,0 +1,38 @@
+/* Keep Wallet Adapter behavior/layout; theme only its supported visual surfaces. */
+.wallet-adapter-modal-overlay {
+  background: hsl(var(--background) / 78%);
+  backdrop-filter: blur(8px);
+}
+.wallet-adapter-modal-wrapper,
+.wallet-adapter-dropdown-list {
+  border: 1px solid hsl(var(--primary) / 45%);
+  border-radius: 16px;
+  background: var(--gradient-card);
+  color: hsl(var(--foreground));
+  box-shadow:
+    var(--shadow-card),
+    0 0 40px hsl(var(--primary) / 16%);
+  font-family: inherit;
+}
+.wallet-adapter-modal-title {
+  background: var(--gradient-title);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+.wallet-adapter-modal-list .wallet-adapter-button {
+  border-top: 1px solid hsl(var(--border));
+  background: transparent;
+  color: hsl(var(--foreground));
+}
+.wallet-adapter-modal-list .wallet-adapter-button:hover,
+.wallet-adapter-dropdown-list-item:not([disabled]):hover {
+  background: hsl(var(--primary) / 15%);
+}
+.wallet-adapter-modal-button-close {
+  border: 1px solid hsl(var(--border));
+  background: hsl(var(--muted));
+}
+.wallet-adapter-modal-button-close svg {
+  fill: hsl(var(--muted-foreground));
+}

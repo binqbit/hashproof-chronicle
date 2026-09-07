@@ -1,0 +1,17 @@
+/* Keep the workspace width unchanged when a popup locks document scrolling. */
+html {
+  scrollbar-gutter: stable;
+}
+
+body {
+  /* A classic scrollbar must not push the 320px layout beyond its viewport. */
+  min-width: min(320px, 100%);
+}
+
+@supports (scrollbar-gutter: stable) {
+  html body[data-scroll-locked] {
+    /* Radix's scroll lock adds its own gap. The root gutter already reserves it.
+       Keep the library's overflow, focus and pointer-event locks intact. */
+    margin-right: 0 !important;
+  }
+}

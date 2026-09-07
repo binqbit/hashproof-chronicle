@@ -1,12 +1,8 @@
-import { Buffer } from "buffer";
-
-if (typeof globalThis !== "undefined") {
-  (globalThis as any).Buffer = (globalThis as any).Buffer || Buffer;
-  (globalThis as any).process = (globalThis as any).process || { env: {} };
-}
-
 import { createRoot } from "react-dom/client";
-import App from "./App.tsx";
+import App from "./App";
+import "./styles/theme.css";
 import "./index.css";
+import "./styles/wallet.css";
+import "./styles/scroll-stability.css";
 
 createRoot(document.getElementById("root")!).render(<App />);

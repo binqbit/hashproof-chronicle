@@ -1,18 +1,7 @@
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { WalletControls } from "../../components/WalletControls";
-import {
-  Fingerprint,
-  ExternalLink,
-  Download,
-  GitBranch,
-  Layers,
-  History,
-  Search,
-  Database,
-  Files,
-  FileCheck2,
-} from "lucide-react";
+import { Fingerprint, ExternalLink, Download } from "lucide-react";
 import { PROGRAM_ID, PROGRAM_VERSION } from "../../contract/client";
 import { explorerUrl, useNetwork } from "../../contract/network";
 import {
@@ -36,18 +25,8 @@ import { Notice } from "./fields";
 import { errorMessage, hashInput, hex } from "./values";
 import { useContract, useTransaction } from "./use-contract";
 import { register, type Receipt } from "./operations";
-
-const tabs = [
-  { key: "records", label: "Inspect", icon: Search },
-  { key: "register", label: "Timestamp", icon: Fingerprint },
-  { key: "branch", label: "Branch", icon: GitBranch },
-  { key: "aggregate", label: "Batch / Pack", icon: Layers },
-  { key: "account", label: "Account", icon: Database },
-  { key: "restore", label: "Restore", icon: History },
-  { key: "proofs", label: "Proofs", icon: Files },
-  { key: "proof-check", label: "Proof check", icon: FileCheck2 },
-] as const;
-type Tab = (typeof tabs)[number]["key"];
+import { WorkspaceNavigation } from "./WorkspaceNavigation";
+import type { WorkspaceTool } from "./navigation";
 
 /** Changing RPC discards only transient UI state, never on-chain records. */
 export default function Workspace() {
@@ -66,7 +45,7 @@ function NetworkWorkspace() {
   const selected =
     route?.[1].toLowerCase() ||
     (legacy ? hex(deriveGenesisHashId(hashInput(legacy[1]))) : "");
-  const [tab, setTab] = useState<Tab>("records");
+  const [tab, setTab] = useState<WorkspaceTool>("records");
   const [history, setHistory] = useState<RestoreProofInput[]>([]);
   const [receipt, setReceipt] = useState<Receipt | null>(null);
   const [confirmation, setConfirmation] = useState<
@@ -191,19 +170,7 @@ function NetworkWorkspace() {
             to submit transactions.
           </p>
         )}
-        <nav className="tabs" aria-label="Record operations">
-          {tabs.map(({ key, label, icon: Icon }) => (
-            <button
-              key={key}
-              aria-current={tab === key ? "page" : undefined}
-              disabled={busy}
-              onClick={() => setTab(key)}
-            >
-              <Icon size={17} />
-              {label}
-            </button>
-          ))}
-        </nav>
+        <WorkspaceNavigation selected={tab} disabled={busy} onSelect={setTab} />
         {busy && (
           <Notice>
             <span role="status">

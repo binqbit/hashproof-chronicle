@@ -24,7 +24,7 @@ npm run dev
 Open the URL printed by Vite. Localnet is selected by default. File hashing and
 proof import work without a wallet; chain operations need a reachable RPC and the
 current program deployed there. Devnet/testnet are selectable explicitly.
-The app opens on Inspect. **Docs & guides** opens a separate documentation page
+The app opens on **Verify → Inspect**. **Docs & guides** opens a separate documentation page
 with topic navigation. Returning to the workspace preserves your current form
 and in-memory history within the same session.
 

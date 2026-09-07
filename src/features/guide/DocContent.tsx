@@ -31,15 +31,21 @@ function GuideNote({
 const content: Record<DocTopicId, ReactNode> = {
   "getting-started": (
     <>
+      <p>
+        Choose a section, then a tool: <strong>Verify</strong> contains Inspect
+        and Proof check; <strong>Create</strong> contains Timestamp, Branch,
+        Batch / Pack and Account; <strong>History</strong> contains Proofs for
+        combining saved evidence and Restore for recovering records.
+      </p>
       <ol>
         <li>
           <strong>Choose a network.</strong> Use the same network whenever you
           save or look up a record. Check that the service is available there.
         </li>
         <li>
-          <strong>Open Timestamp and choose a file.</strong> The app calculates
-          its fingerprint, called a hash, on your device. Your file is not
-          uploaded.
+          <strong>Open Create → Timestamp and choose a file.</strong> The app
+          calculates its fingerprint, called a hash, on your device. Your file
+          is not uploaded.
         </li>
         <li>
           <strong>Check before registering.</strong> Choose “Inspect record — no
@@ -133,8 +139,8 @@ const content: Record<DocTopicId, ReactNode> = {
     <>
       <ol>
         <li>
-          <strong>Find the previous version.</strong> In Branch, enter its
-          record ID or account address. The previous record must still be
+          <strong>Find the previous version.</strong> In Create → Branch, enter
+          its record ID or account address. The previous record must still be
           available.
         </li>
         <li>
@@ -191,12 +197,12 @@ const content: Record<DocTopicId, ReactNode> = {
       </p>
       <h2>Group records with Batch or Pack</h2>
       <p>
-        Open Batch / Pack and choose your saved proof files, including combined
-        files from Proofs. All records from the files are selected automatically,
-        including older linked records. Uncheck any you do not want, then use
-        the arrows to set their order. A group can contain at most 32 records;
-        if more are selected, remove the extras before continuing. You can also
-        choose “Enter IDs manually” if you prefer.
+        Open Create → Batch / Pack and choose your saved proof files, including
+        combined files from Proofs. All records from the files are selected
+        automatically, including older linked records. Uncheck any you do not
+        want, then use the arrows to set their order. A group can contain at most
+        32 records; if more are selected, remove the extras before continuing.
+        You can also choose “Enter IDs manually” if you prefer.
       </p>
       <p>
         Use the original network and check the preview before creating the
@@ -228,7 +234,8 @@ const content: Record<DocTopicId, ReactNode> = {
       <ol>
         <li>
           <strong>Open your saved proof.</strong> Select the original network,
-          open Restore and choose the proof file. Keep your original file too.
+          open History → Restore and choose the proof file. Keep your original
+          file too.
         </li>
         <li>
           <strong>Load the history.</strong> Choose “Check format & load
@@ -260,9 +267,9 @@ const content: Record<DocTopicId, ReactNode> = {
     <>
       <h2>Check a file against saved history</h2>
       <p>
-        Open Proof check, choose your proof file and the file you want to check,
-        then click “Find file in proof”. Original and combined proof files are
-        supported. The file stays on your device.
+        Open Verify → Proof check, choose your proof file and the file you want
+        to check, then click “Find file in proof”. Original and combined proof
+        files are supported. The file stays on your device.
       </p>
       <p>
         The search covers saved versions and nested groups. Each match shows
@@ -284,8 +291,8 @@ const content: Record<DocTopicId, ReactNode> = {
       </p>
       <ol>
         <li>
-          <strong>Choose your files.</strong> Open Proofs and select at least
-          two saved proof files. You can add more in another selection.
+          <strong>Choose your files.</strong> Open History → Proofs and select at
+          least two saved proof files. You can add more in another selection.
         </li>
         <li>
           <strong>Review the list.</strong> Remove any file you do not want to

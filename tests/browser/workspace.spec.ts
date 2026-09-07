@@ -11,6 +11,7 @@ import {
   stringifyArchive,
 } from "../../src/contract/sdk";
 import { PublicKey } from "@solana/web3.js";
+import { openTool } from "./navigation";
 
 const program = IDL.address;
 const digest = (data: Uint8Array) => createHash("sha256").update(data).digest();
@@ -77,12 +78,112 @@ async function rpc(page: Page, accountData?: string, fail = false) {
   });
 }
 
+test("groups all tools by task, stays keyboard accessible and fits narrow screens", async ({
+  page,
+}, testInfo) => {
+  await rpc(page);
+  await page.goto("/");
+  const sections = page.getByRole("navigation", { name: "Workspace sections" });
+  const tools = page.getByRole("navigation", { name: "Record operations" });
+  await expect(sections.getByRole("button")).toHaveCount(3);
+  await expect(
+    sections.getByRole("button", { name: "Verify", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  const verify = sections.getByRole("button", { name: "Verify", exact: true });
+  const selectedBackground = await verify.evaluate(
+    (element) => getComputedStyle(element).backgroundImage,
+  );
+  expect(selectedBackground).toContain("linear-gradient");
+  await verify.hover();
+  await expect(verify).toHaveCSS("background-image", selectedBackground);
+
+  for (const narrow of [false, true]) {
+    if (narrow) await page.setViewportSize({ width: 320, height: 720 });
+    for (const [section, entries] of [
+      [
+        "Verify",
+        [
+          ["Inspect", "Inspect a record"],
+          ["Proof check", "Check a file against its proof"],
+        ],
+      ],
+      [
+        "Create",
+        [
+          ["Timestamp", "Timestamp a file"],
+          ["Branch", "Create a branch"],
+          ["Batch / Pack", "Combine records"],
+          ["Account", "Commit an account snapshot"],
+        ],
+      ],
+      [
+        "History",
+        [
+          ["Proofs", "Work with proofs"],
+          ["Restore", "Restore historical records"],
+        ],
+      ],
+    ] as const) {
+      const button = sections.getByRole("button", {
+        name: section,
+        exact: true,
+      });
+      await button.focus();
+      await page.keyboard.press("Enter");
+      await expect(button).toHaveAttribute("aria-pressed", "true");
+      await expect(tools.getByRole("button")).toHaveText(
+        entries.map(([label]) => label),
+      );
+      for (const [label, heading] of entries) {
+        const tool = tools.getByRole("button", { name: label, exact: true });
+        await tool.focus();
+        await page.keyboard.press("Space");
+        await expect(tool).toHaveAttribute("aria-current", "page");
+        await expect(
+          page.getByRole("heading", { name: heading, exact: true }),
+        ).toBeVisible();
+      }
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await page.locator(".workspace-navigation").screenshot({
+        path: testInfo.outputPath(
+          `navigation-${section}-${narrow ? "narrow" : "default"}.png`,
+        ),
+      });
+    }
+  }
+
+  await openTool(page, "Branch");
+  await page.getByLabel("New payload / file digest").fill("ab".repeat(32));
+  // Documentation should preserve a non-default section and its open draft too.
+  await page.getByRole("link", { name: "Docs & guides", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Back to workspace", exact: true })
+    .first()
+    .click();
+  await expect(
+    sections.getByRole("button", { name: "Create", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(page.getByLabel("New payload / file digest")).toHaveValue(
+    "ab".repeat(32),
+  );
+  await page.getByRole("link", { name: "Hashproof home", exact: true }).click();
+  await expect(
+    sections.getByRole("button", { name: "Verify", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    tools.getByRole("button", { name: "Inspect", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
+});
+
 test("disables empty operation inputs and re-enables checks when data is entered", async ({
   page,
 }) => {
   await rpc(page);
   await page.goto("/");
-  const tabs = page.getByRole("navigation", { name: "Record operations" });
   await expect(
     page.getByRole("button", { name: "Look up", exact: true }),
   ).toBeDisabled();
@@ -93,7 +194,7 @@ test("disables empty operation inputs and re-enables checks when data is entered
   await expect(
     page.getByRole("button", { name: "Look up", exact: true }),
   ).toBeEnabled();
-  await tabs.getByRole("button", { name: "Branch", exact: true }).click();
+  await openTool(page, "Branch");
   await page.getByLabel("Parent canonical ID or PDA").fill("   ");
   await page.getByLabel("New payload / file digest").fill("ab".repeat(32));
   await expect(
@@ -103,7 +204,7 @@ test("disables empty operation inputs and re-enables checks when data is entered
   await expect(
     page.getByRole("button", { name: "Check parent & preview — no fee" }),
   ).toBeEnabled();
-  await tabs.getByRole("button", { name: "Batch / Pack", exact: true }).click();
+  await openTool(page, "Batch / Pack");
   await page.getByRole("combobox", { name: "Choose records using" }).click();
   await page.getByRole("option", { name: "Enter IDs manually", exact: true }).click();
   for (const mode of [
@@ -121,7 +222,7 @@ test("disables empty operation inputs and re-enables checks when data is entered
       page.getByRole("button", { name: "Check members & preview — no fee" }),
     ).toBeEnabled();
   }
-  await tabs.getByRole("button", { name: "Restore", exact: true }).click();
+  await openTool(page, "Restore");
   await page.getByLabel("Proof chain JSON").fill(" \n ");
   await expect(
     page.getByRole("button", { name: "Check format & load history" }),
@@ -169,12 +270,7 @@ test("accepts a PDA in Inspect and previews branches and mixed aggregate members
   const tabs = page.getByRole("navigation", { name: "Record operations" });
   await expect(tabs.getByRole("button")).toHaveText([
     "Inspect",
-    "Timestamp",
-    "Branch",
-    "Batch / Pack",
-    "Account",
-    "Restore",
-    "Proofs",
+    "Proof check",
   ]);
   await expect(
     tabs.getByRole("button", { name: "Inspect", exact: true }),
@@ -183,7 +279,7 @@ test("accepts a PDA in Inspect and previews branches and mixed aggregate members
   await page.getByRole("button", { name: "Look up", exact: true }).click();
   await expect(page).toHaveURL(`/records/${canonical}`);
   await expect(page.getByText("2023-11-14T22:13:20.000Z")).toBeVisible();
-  await tabs.getByRole("button", { name: "Branch", exact: true }).click();
+  await openTool(page, "Branch");
   await page.getByLabel("Parent canonical ID or PDA").fill(recordPda());
   await page.getByLabel("New payload / file digest").fill("ab".repeat(32));
   await page
@@ -194,7 +290,7 @@ test("accepts a PDA in Inspect and previews branches and mixed aggregate members
   await expect(page.getByText("New branch PDA", { exact: true })).toHaveCount(
     0,
   );
-  await tabs.getByRole("button", { name: "Batch / Pack", exact: true }).click();
+  await openTool(page, "Batch / Pack");
   await page.getByRole("combobox", { name: "Choose records using" }).click();
   await page.getByRole("option", { name: "Enter IDs manually", exact: true }).click();
   await page
@@ -233,10 +329,7 @@ test("branches from a previous record and a locally hashed new file version", as
   ).toString("hex");
   await rpc(page, await liveHashData());
   await page.goto("/");
-  await page
-    .getByRole("navigation", { name: "Record operations" })
-    .getByRole("button", { name: "Branch", exact: true })
-    .click();
+  await openTool(page, "Branch");
   await page.getByLabel("Parent canonical ID or PDA").fill(recordPda());
   const withdraw = page.getByRole("checkbox", {
     name: "Withdraw my parent vote after creating the child",
@@ -283,7 +376,7 @@ test("imports Batch and Pack members from proof files without typing IDs", async
 }, testInfo) => {
   await rpc(page, await liveHashData());
   await page.goto("/");
-  await page.getByRole("button", { name: "Batch / Pack", exact: true }).click();
+  await openTool(page, "Batch / Pack");
   const first = {
     hash: payload.toString("hex"),
     source: { kind: "hash" as const },
@@ -543,10 +636,7 @@ test("checks restore against a live anchor and invalidates the result on editing
 }, testInfo) => {
   await rpc(page, await liveHashData());
   await page.goto("/");
-  await page
-    .getByRole("navigation", { name: "Record operations" })
-    .getByRole("button", { name: "Restore", exact: true })
-    .click();
+  await openTool(page, "Restore");
   const input = JSON.stringify([
     {
       hash: payload.toString("hex"),
@@ -760,10 +850,7 @@ test("hashes a file offline, derives the current canonical ID and looks up witho
   await expect(page.getByRole("heading", { level: 1 })).toContainText(
     "Evidence stays connected.",
   );
-  await page
-    .getByRole("navigation", { name: "Record operations" })
-    .getByRole("button", { name: "Timestamp", exact: true })
-    .click();
+  await openTool(page, "Timestamp");
   await page.getByLabel("File to timestamp").setInputFiles({
     name: "sample.txt",
     mimeType: "text/plain",
@@ -778,6 +865,16 @@ test("hashes a file offline, derives the current canonical ID and looks up witho
   ).toBeDisabled();
   await page.getByRole("button", { name: "Inspect record — no fee" }).click();
   await expect(page).toHaveURL(`/records/${canonical}`);
+  await expect(
+    page
+      .getByRole("navigation", { name: "Workspace sections" })
+      .getByRole("button", { name: "Verify", exact: true }),
+  ).toHaveAttribute("aria-pressed", "true");
+  await expect(
+    page
+      .getByRole("navigation", { name: "Record operations" })
+      .getByRole("button", { name: "Inspect", exact: true }),
+  ).toHaveAttribute("aria-current", "page");
   await expect(
     page.getByText("No live record was found.", { exact: false }),
   ).toBeVisible();
@@ -829,10 +926,7 @@ test("permits offline proof parsing but never confuses it with on-chain verifica
 }) => {
   await rpc(page, undefined, true);
   await page.goto("/");
-  await page
-    .getByRole("navigation", { name: "Record operations" })
-    .getByRole("button", { name: "Restore", exact: true })
-    .click();
+  await openTool(page, "Restore");
   const proof = [
     {
       hash: payload.toString("hex"),

@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openTool } from "./navigation";
 import { createHash } from "node:crypto";
 import { BN, BorshAccountsCoder } from "@coral-xyz/anchor";
 import { PublicKey } from "@solana/web3.js";
@@ -102,7 +103,7 @@ test("finds file versions inside Batch and Pack and checks historical time witho
     });
   });
   await page.goto("/");
-  await page.getByRole("button", { name: "Proof check", exact: true }).click();
+  await openTool(page, "Proof check");
   const search = page.getByRole("button", { name: "Find file in proof" });
   await expect(search).toBeDisabled();
   await page.getByLabel("Proof file to search").setInputFiles({

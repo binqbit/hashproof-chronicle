@@ -40,10 +40,27 @@ records.
 
 ## Screens and identifiers
 
-Inspect is the first screen and opens by default, including from the home link.
-Creation and history operations follow it. **Docs & guides**, above the operation
-tabs, opens `/docs/getting-started`. Documentation has a left-hand topic menu on
-desktop and a topic dropdown on mobile, with one article shown at a time. Topics
+The workspace has two navigation levels: choose a section, then one of its tools.
+
+| Section | Tools                                   |
+| ------- | --------------------------------------- |
+| Verify  | Inspect, Proof check                    |
+| Create  | Timestamp, Branch, Batch / Pack, Account |
+| History | Proofs, Restore                         |
+
+**Verify → Inspect** opens by default, including record links and the home link.
+Selecting a different section opens its first tool; clicking the current section
+keeps its selected tool. Inspect actions from other tools also select Verify.
+Both navigation levels are disabled while a transaction is pending. Changing
+tools, within or between sections, keeps the existing form reset/cancellation
+behavior; Proofs keeps its file selection and merged result across these changes.
+The group definitions and tool type live in `src/features/workspace/navigation.ts`;
+`WorkspaceNavigation.tsx` handles presentation, while `Workspace.tsx` owns the
+active tool and operation state. Navigation does not call the contract.
+
+**Docs & guides**, above the navigation, opens `/docs/getting-started`.
+Documentation has a left-hand topic menu on desktop and a topic dropdown on
+mobile, with one article shown at a time. Topics
 have their own `/docs/:section` links and support reload and browser back/forward.
 The guide covers a quick start, use cases, identifiers, Branch, Restore, proof files,
 votes, wallet behavior and developer resources. Unknown topic links show a
@@ -207,7 +224,7 @@ limits. No automatic splitting or fabricated history is performed.
 
 ## Check a file against a proof
 
-Open **Proof check**, choose one original/combined proof JSON and one resource
+Open **Verify → Proof check**, choose one original/combined proof JSON and one resource
 file, then click **Find file in proof**. Import reuses the same parser and file
 limits as Batch / Pack (including program/RPC checks); resource SHA-256 is computed
 incrementally on-device. Nothing is uploaded.
@@ -239,7 +256,7 @@ Docs preserves the mounted workspace. A search requires both valid files.
 
 ## Merge proof files
 
-Open **Proofs**, select two or more JSON files, and click **Merge files**. Further
+Open **History → Proofs**, select two or more JSON files, and click **Merge files**. Further
 selections append files to the list; individual files can be removed. Download
 the result with **Download merged JSON**. Changing the selection invalidates the
 previous result. Clearing the selection cancels an active merge. Switching

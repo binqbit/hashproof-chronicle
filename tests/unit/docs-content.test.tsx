@@ -6,6 +6,17 @@ import { docTopics } from "../../src/features/guide/topics";
 
 afterEach(cleanup);
 
+it("shows where to find each workspace tool in the getting-started guide", () => {
+  const { container } = render(<DocContent topic="getting-started" />);
+  const text = container.textContent;
+  expect(text).toContain("Verify contains Inspect and Proof check");
+  expect(text).toContain(
+    "Create contains Timestamp, Branch, Batch / Pack and Account",
+  );
+  expect(text).toContain("History contains Proofs");
+  expect(text).toContain("Restore for recovering records");
+});
+
 it.each(docTopics.filter((topic) => topic.id !== "developers"))(
   "$id explains user actions without implementation details",
   (topic) => {

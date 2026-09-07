@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { openTool } from "./navigation";
 import {
   archiveFromProof,
   IDL,
@@ -25,8 +26,7 @@ test("combines and downloads proof files with RPC unavailable, preserving select
     ]),
   );
   await page.goto("/");
-  const tabs = page.getByRole("navigation", { name: "Record operations" });
-  await tabs.getByRole("button", { name: "Proofs", exact: true }).click();
+  await openTool(page, "Proofs");
   await page
     .getByLabel("Add proof JSON files")
     .setInputFiles(
@@ -36,8 +36,8 @@ test("combines and downloads proof files with RPC unavailable, preserving select
         buffer: Buffer.from(stringifyArchive(archive)),
       })),
     );
-  await tabs.getByRole("button", { name: "Inspect", exact: true }).click();
-  await tabs.getByRole("button", { name: "Proofs", exact: true }).click();
+  await openTool(page, "Inspect");
+  await openTool(page, "Proofs");
   await expect(
     page.getByText("2 files selected", { exact: true }),
   ).toBeVisible();

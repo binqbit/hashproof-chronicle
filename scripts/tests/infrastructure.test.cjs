@@ -147,18 +147,23 @@ function validatorFixture(t) {
   assert.equal(f.run('copy-metadata.sh').status, 0);
   const ledger = path.join(f.root, 'test ledger');
   const argsFile = path.join(f.root, 'validator-args');
+  const fixtures = path.join(f.root, 'proof chain fixtures');
+  f.put(path.join(fixtures, 'program-id.txt'), `${f.address}\n`);
+  // These are orchestration sentinels; real dump contents are decoded in the example unit test.
+  f.put(path.join(fixtures, 'pack.json'), 'pack account fixture');
+  f.put(path.join(fixtures, 'pack-vote.json'), 'vote account fixture');
   const start = () => spawnSync('sh', [entrypoint], {
-    env: { ...f.env, ARTIFACTS_DIR: f.output, LEDGER_DIR: ledger, VALIDATOR_ARGS: argsFile },
+    env: { ...f.env, ARTIFACTS_DIR: f.output, LEDGER_DIR: ledger, FIXTURES_DIR: fixtures, VALIDATOR_ARGS: argsFile },
     encoding: 'utf8',
   });
-  return { ...f, start, ledger, argsFile };
+  return { ...f, start, ledger, argsFile, fixtures };
 }
 
 test('validator loads the built program and preserves matching ledger state', (t) => {
   const f = validatorFixture(t);
   assert.equal(f.start().status, 0);
   const args = fs.readFileSync(f.argsFile, 'utf8');
-  assert.equal(args, `--ledger\n${f.ledger}\n--bind-address\n127.0.0.1\n--rpc-port\n8899\n--bpf-program\n${f.address}\n${f.output}/hash_timestamp.so\n--log\n`);
+  assert.equal(args, `--ledger\n${f.ledger}\n--bind-address\n127.0.0.1\n--rpc-port\n8899\n--bpf-program\n${f.address}\n${f.output}/hash_timestamp.so\n--account\n-\n${f.fixtures}/pack.json\n--account\n-\n${f.fixtures}/pack-vote.json\n--log\n`);
   f.put(path.join(f.ledger, 'genesis.bin'), 'persistent local chain');
   assert.equal(f.start().status, 0);
   assert.equal(fs.readFileSync(path.join(f.ledger, 'genesis.bin'), 'utf8'), 'persistent local chain');
@@ -184,4 +189,42 @@ test('validator refuses untracked existing ledgers and missing artifacts', (t) =
   fs.unlinkSync(path.join(f.output, 'hash_timestamp.so'));
   assert.match(f.start().stderr, /Missing/);
   assert.equal(fs.readFileSync(path.join(f.ledger, 'genesis.bin'), 'utf8'), 'legacy chain');
+});
+
+test('validator refuses missing or wrong-program fixtures before writing a ledger', (t) => {
+  const f = validatorFixture(t);
+  f.put(path.join(f.fixtures, 'program-id.txt'), 'another-program');
+  assert.match(f.start().stderr, /different program address/);
+  assert.equal(fs.existsSync(f.ledger), false);
+  f.put(path.join(f.fixtures, 'program-id.txt'), f.address);
+  fs.unlinkSync(path.join(f.fixtures, 'pack-vote.json'));
+  assert.match(f.start().stderr, /Missing.*pack-vote.json/);
+  assert.equal(fs.existsSync(f.argsFile), false);
+  assert.equal(fs.existsSync(f.ledger), false);
+});
+
+test('validator preserves existing chains when proof fixtures change or were never seeded', (t) => {
+  const f = validatorFixture(t);
+  assert.equal(f.start().status, 0);
+  f.put(path.join(f.ledger, 'genesis.bin'), 'keep this chain');
+  fs.unlinkSync(f.argsFile);
+  const marker = path.join(f.ledger, '.proof-chain-fixture');
+  const originalMarker = fs.readFileSync(marker, 'utf8');
+  f.put(path.join(f.fixtures, 'pack.json'), 'changed pack fixture');
+  assert.match(f.start().stderr, /different proof-chain fixtures/);
+  assert.equal(fs.readFileSync(marker, 'utf8'), originalMarker);
+  fs.unlinkSync(marker);
+  assert.match(f.start().stderr, /no proof-chain fixture/);
+  assert.equal(fs.existsSync(marker), false);
+  assert.equal(fs.existsSync(f.argsFile), false);
+  assert.equal(fs.readFileSync(path.join(f.ledger, 'genesis.bin'), 'utf8'), 'keep this chain');
+});
+
+test('validator recognizes Agave ledger marker without creating fixture fingerprints', (t) => {
+  const f = validatorFixture(t);
+  f.put(path.join(f.ledger, 'vote-account-keypair.json'), 'existing validator marker');
+  assert.match(f.start().stderr, /no build fingerprint/);
+  assert.equal(fs.existsSync(path.join(f.ledger, '.hash-timestamp-build')), false);
+  assert.equal(fs.existsSync(path.join(f.ledger, '.proof-chain-fixture')), false);
+  assert.equal(fs.existsSync(f.argsFile), false);
 });

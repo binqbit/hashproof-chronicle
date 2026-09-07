@@ -40,6 +40,12 @@ services:
         read_only: true
         bind:
           create_host_path: false
+      - type: bind
+        source: ./examples/proof-chain/ledger
+        target: /fixtures/proof-chain
+        read_only: true
+        bind:
+          create_host_path: false
     healthcheck:
       test: ["CMD", "solana", "--url", "http://127.0.0.1:8899", "cluster-version"]
       interval: 5s

@@ -105,8 +105,9 @@ The builder copies contract sources into the image, invokes the contract's
 existing `scripts/test.sh --build-only`, rejects any Cargo lockfile change, checks
 generated IDL against its compatibility baseline, and exports the public artifacts. The runtime image
 receives those artifacts, validator tools and the entrypoint, not compilers or
-contract source. Compose overrides only the entrypoint with the checkout's script;
-contract artifacts remain embedded in the image.
+contract source. It also includes the example's two genesis account dumps.
+Compose mounts the entrypoint and `examples/proof-chain/ledger/` read-only from
+the checkout; contract artifacts remain embedded in the image.
 
 `infra/frontend/Dockerfile` installs the committed npm lockfile with `npm ci`, runs
 `npm run build`, and copies only `dist/` into Nginx. The build checks that the
@@ -157,6 +158,12 @@ refuses to start if a different build is supplied. Existing ledgers without this
 fingerprint are also refused; they are never reset or deleted automatically.
 This includes volumes created by the earlier infrastructure setup.
 
+The proof-chain account fixtures have their own `.proof-chain-fixture` fingerprint.
+The entrypoint refuses a ledger seeded with different fixture contents, or an
+existing ledger that never included them. Both checks happen before changing any
+ledger fingerprints. Matching restarts retain the ledger's actual state; they do
+not recreate accounts that were subsequently modified or closed.
+
 To test a new build while preserving the previous chain, stop the old stack and
 use a new Compose project name:
 
@@ -171,6 +178,42 @@ Keep that name for subsequent operations. Both projects use the same host ports,
 so only one should be running at a time. No deployment script sends transactions
 to public Solana clusters. Existing local files in `accounts/` and `config/` stay
 ignored, unmodified and outside the container build context.
+
+### Proof-chain example
+
+[examples/proof-chain/proof-chain.json](../examples/proof-chain/proof-chain.json)
+contains a complete 24-node graph with SHA-256 commitments to 19 included text
+files. See its [guide and node index](../examples/proof-chain/README.md).
+
+Only its final Pack HashAccount is loaded at genesis, alongside one matching
+VoteInfo to preserve the contract's active-voter invariant. No predecessor
+HashAccounts or snapshot target wallet are loaded. The test dump's Base64 account
+bytes are separate from the portable proof format, which retains hex hashes and
+Base58 public keys.
+
+The validator receives `--account -` for each dump, using its embedded address.
+Agave [loads these dumps at genesis](https://github.com/anza-xyz/agave/blob/v4.0.3/test-validator/src/lib.rs#L495-L527)
+and [does not apply them to an existing ledger](https://github.com/anza-xyz/agave/blob/v4.0.3/validator/src/bin/solana-test-validator.rs#L350-L365).
+The addresses and serialized Pack history are deterministic, but their dates are
+synthetic test data, not authenticated historical transactions.
+
+For a stack with an existing ledger, keep the old volume and use a new project:
+
+```sh
+sh scripts/deploy.sh down
+COMPOSE_PROJECT_NAME=hashproof-example sh scripts/deploy.sh up
+```
+
+If that project name was used previously, choose another unused name. Use the
+same new name for subsequent `status`, `logs` and `down` operations. These commands
+do not remove the previous volume. Docker can reuse unchanged build layers;
+the entrypoint and fixture directory are also mounted read-only from this checkout.
+
+Select localnet and import the proof into **History → Proof inspector**. The Pack
+address is listed in the example's node index. **Verify → Proof check** can match
+the included files through this live anchor. Full Restore of this 24-node graph
+exceeds the current instruction/transaction size limit; seeding Pack does not
+remove that limit, and no intermediate anchors are preloaded.
 
 ## Git submodule workflow
 
@@ -191,7 +234,9 @@ docker compose config --quiet
 ```
 
 The script tests use disposable directories and fake Docker/validator executables.
-They cover command routing, artifact export, missing submodule checks and ledger
-preservation without sending transactions or reading real keypairs. These tests
+They cover command routing, artifact export, missing submodule checks, fixture
+loading and ledger preservation without sending transactions or reading real keypairs.
+`npx vitest run tests/unit/proof-chain-example.test.ts` independently checks the
+files, graph, hashes, PDA derivations, archive validation and both genesis account dumps. These tests
 and Compose validation do not substitute for a container runtime smoke test:
 run `sh scripts/deploy.sh up`, inspect `status`, and check the HTTP/RPC endpoints.

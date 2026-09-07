@@ -1,0 +1,250 @@
+{
+  "format": "hash-timestamp-archive",
+  "version": 1,
+  "programId": "HTSx1wheA1TnHSEbKWxmtXKgJNyRfF3QxeK2hHQcJ9pN",
+  "nodes": {
+    "28Vh6cFBnJ6CsMLbUFSKxwk5Q5f2fHYHPGcKZowauLXN": {
+      "hash": "c57610473aebd39244413071accb2cd7427af880fb3afef75c15f811dbe546f6",
+      "createdAt": "1788264600",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "bfaa5fb7414ba107db7a312d6a83205d7d180ae67e76ec7b9cb187c5b24c705d",
+        "payload": "486cf0441e51da6fb8b814a50ccd04a7cece4a3ea49166d84ff90a108b0bf5aa",
+        "generation": "2"
+      }
+    },
+    "2jvodG4Xg4sCFD7j1Ptji3sZh2iUFu87iiRxYby89bxJ": {
+      "hash": "6f80bb6899fc93d374147e0dc85794d4fb873ef95630487db339343d87c0549f",
+      "createdAt": "1788266820",
+      "source": {
+        "kind": "pack"
+      },
+      "members": [
+        "HedYu31TVzSqgAkRQPjpkS3BYTqHs4Ch3Xo9mK8DDDwd",
+        "7dCWcygSzgabawF5XbNw5mWfHryJeZh3UoxAsvtCLUtW",
+        "CdVKoYkLaGhMoyja6xoiMkFB2wUmbF1o3mq2gu7uUxKv"
+      ]
+    },
+    "2L1M5LhFPBC4AT2ACLRGs9WkPPNqkDbuthKYN8vssCqn": {
+      "hash": "97e3080f9bf11e2525026815a0183bee149ab6a1050d5f5c0ef41a2eb8fb3919",
+      "createdAt": "1788265500",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "33b7f1db71a0075cc936435dc4cd4caa8e63725466218e8ad31ee2dc2c19ba21",
+        "payload": "43a4371e501abeb7144ee3f7fbb7e998f3a02b704b8571927f0e52afdc6e0a3b",
+        "generation": "1"
+      }
+    },
+    "4wvfwF5t2d2ZnRvm84CfpcHrsygQwhWe7WUq8cSvhti1": {
+      "hash": "33e97a8f37d8fdbb1a073fc37b35f57b9819e6bf21b734933e1c980f26d0adab",
+      "createdAt": "1788264420",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "f8e5fc6b11ce3f5af336a53cb7b5096f8d88d00532413ccf80f01a93774216dd",
+        "payload": "64542d8ae3baeba8b00085e497ed2b210a0d6ae0066b4a652a3ddd97e44042aa",
+        "generation": "1"
+      }
+    },
+    "69LGMGqSgjjb5KZFmS84ks79TS62pPAEYQCz3pads3QM": {
+      "hash": "2c27c86f230a08fcb77825969465113f5362dc19064b4a793b89a179c4c8e5bb",
+      "createdAt": "1788265320",
+      "source": {
+        "kind": "batch",
+        "members": [
+          "2147b74d4ed43936ecc889ca6cf6e33552ab6ca65faacd88c1bea97ce7bbf3d7",
+          "2234b693811c80041494cccfa59eb811a58103e1a0458949ff736c5d8f44e300"
+        ]
+      }
+    },
+    "7dCWcygSzgabawF5XbNw5mWfHryJeZh3UoxAsvtCLUtW": {
+      "hash": "435169391eea5f8ebaffb1d546c300b14aff50768389399d0bd798832de6c3a7",
+      "createdAt": "1788266520",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "99bb146a54a244fd2ccecaef264dfabd00fd6c3d7fd37f615b78b0a17aa3e797",
+        "payload": "367d21e60e6caf48990cdc3de973f81e068f24f56c3821fecb311ba795926dfb",
+        "generation": "3"
+      }
+    },
+    "7qnLvUkzC3UM6mRjs2QRDQoHNxTTN87kus4kZQAjv6R2": {
+      "hash": "f287905769f9b282adae1ec51caaac24bae14c758849bedd8c4c223b96d4d39f",
+      "createdAt": "1788264060",
+      "source": {
+        "kind": "hash"
+      }
+    },
+    "9ua8iBeHLkH1b5WNdudRDXoJCeTLxfBqnxuHwhk1KV3K": {
+      "hash": "e995ef3537be57b17a3daf8f91f730fb9343289340b81bb8fdddeb22935fa00d",
+      "createdAt": "1788266040",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "bc4a701073cf2c2b880f8b89227d2d657d37b0684a96f33b6a3c78b051416d8d",
+        "payload": "870da9bf13154f2550368f1b5532e9cf7dc3a8237f8332c513f0be94bf2deed5",
+        "generation": "1"
+      }
+    },
+    "AFbQyvu6RptemXF9io28aj8kN2GC62VsebEH3tGjYJHF": {
+      "hash": "03fe5e9d0f47c990593583a2b89d6bc5ba694b1755d37dd225962a78a0796716",
+      "createdAt": "1788264720",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "3cf12e3486448f58399c68a3c82f17b586db9cb898853d8003a36a2e26748006",
+        "payload": "f9fba3f8ce5f6d073a96b92c1a30557ee4fa6dadd3252e53c31e99fd6bbd908b",
+        "generation": "3"
+      }
+    },
+    "B1yQU9toc6uF6f88d91bpTHGjskJBvgNimFFbJ6Ck8SE": {
+      "hash": "c70d4e508fefb4da7505b25c510c3b02f6c073c1115481fd2f667e634c7e166a",
+      "createdAt": "1788264540",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "c28a70a4da93c8fc95011139de37f458c63e24535410d2cd307c0ab56e52cb4e",
+        "payload": "0878e748bc6281d1f11f35db7ebde0f40b0f68e0563b5e3af5d314b3f9cd54e0",
+        "generation": "2"
+      }
+    },
+    "BAUVqbnKaNaryE4Mphfbg7G7vqV5Choo41daqqeGPmeY": {
+      "hash": "6b1d923a51157665f61597a3f707fca7d7c808b2c34f83a7b508e1abe388d564",
+      "createdAt": "1788265020",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "baa2d26f0b556529d346de49bb7ff5378a18095a062bd5c534cb678e509d439a",
+        "payload": "90b045916695074202284f4b451a16d7267cf8f5b7a1a338696b485ecaba1002",
+        "generation": "4"
+      }
+    },
+    "Bu4fh9dmJQi4Girc1vRfN83pi4NSubTDA4KMTd26a6w6": {
+      "hash": "25fd662a8d23f120d6feb15e6b6fa52253435a05338a61b64ff1e74250b1ff4d",
+      "createdAt": "1788265860",
+      "source": {
+        "kind": "batch",
+        "members": [
+          "b851d9e4f15d88dbe61a78b0fac6a8a8633f1703e105678c69f914189e146925",
+          "44fb1eae5b6293a9a82cd11e1df9dd256db2e0a85e6b1421caee8d1f71b0d7c0"
+        ]
+      }
+    },
+    "ByUj8aB6gCETws291fd7GLxYhwrb5NFTvguiRkr9tqiC": {
+      "hash": "7a0e488c12c6fdcc67cbf4fc47b61607034157929cd0842eb23adc1e8f199fdf",
+      "createdAt": "1788264000",
+      "source": {
+        "kind": "hash"
+      }
+    },
+    "C6RyUmZWFyou1LTtwwqZY2FFwkw9RoxeercRFqGFGsvu": {
+      "hash": "2d442dafc360dba6cc4e8fa61624697abb0127396d7d565140c5ece8358eee80",
+      "createdAt": "1788264300",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "c8e1d11ecc53514fca7f31fe2dab79d801bbb39b6aa220fdf38cb5565759c095",
+        "payload": "b067c929ee598066b0dcc042765dbf3b6cc81d2b53e7d4778ec894f6b47b21be",
+        "generation": "1"
+      }
+    },
+    "CdVKoYkLaGhMoyja6xoiMkFB2wUmbF1o3mq2gu7uUxKv": {
+      "hash": "302d18850e8ca26530681bc0e8a14f568cc2c45e0c27f50a0feecb9c2fea812f",
+      "createdAt": "1788264240",
+      "source": {
+        "kind": "account",
+        "account": "5opJfmPEcEYNT2wTt8FLkRKhubd6fHuFuGRhfSoQnCET"
+      },
+      "snapshot": {
+        "owner": "11111111111111111111111111111111",
+        "lamports": "1000000000",
+        "executable": false,
+        "rentEpoch": "0",
+        "data": []
+      }
+    },
+    "CWyP6zyA78mJB2A5thSggKTpXRkBv3bebFPJ1brE1S4F": {
+      "hash": "b276ca730c0ea9a3cb6fb077dc01bde7b0dadfb0952589940a65a1762edb6b20",
+      "createdAt": "1788264840",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "765080ddec0abc6fdd90f73bebe43eaea0304a524056a13529d33acfa0101477",
+        "payload": "675f8e864c5a2efc7fb047ec4c6d4ad5c16ea874bdffc59c60314813f7356ae7",
+        "generation": "3"
+      }
+    },
+    "DfiSLsgtYxL7QeeBWBdMGoRYN1sXEs3gQ4JAa2VLfw9N": {
+      "hash": "ab06fc882ed9dc6df1e78fdfd4494ad1cbdd5197d66ceb06b793433be2695277",
+      "createdAt": "1788265380",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "6f00cf7818e8257751cbfde1fc1da3059c4c680613b2c494bd1490cf68b3aaa0",
+        "payload": "981ae4218c1e28b7c042e42e205ab6f7e7593783151ed2b7fd570baec800a59a",
+        "generation": "1"
+      }
+    },
+    "DNrcfkbKA45T9ukpGXZaZbUpedtH6J17NAZPinwGeCqw": {
+      "hash": "1f7cc2f602566cf4b6aa9a57c3333add8c5baa958b5fa64490e53349a653b8ce",
+      "createdAt": "1788265980",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "bc4a701073cf2c2b880f8b89227d2d657d37b0684a96f33b6a3c78b051416d8d",
+        "payload": "d5d4afee1243001312ac0095e7dd249988eddd4abb2d8e2144fc42b2abd97b67",
+        "generation": "1"
+      }
+    },
+    "DS1v5z9UaCS247LDJf8KX4ySCYT3G5kd6rzscLb56GDy": {
+      "hash": "20e21b67f8ced76d2637182d6a07c5d485179f6e6099547028a83ef1323e656e",
+      "createdAt": "1788264360",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "7c41bb4227211b0c87a9de6b7db9b2bf102d650ba10fe9bae8d4188b3f64bcef",
+        "payload": "b8349257e5bdf03568136a040d9c8b80742569ea3df697d58b68fe2b1f7dd99e",
+        "generation": "1"
+      }
+    },
+    "DtBboQXVeV8QeM3xEFUGJrJC1KbvK6DDJAALBGMmfUB6": {
+      "hash": "59399169b2f27509bbbc1c55e7a5f0ce8a375450462c7e1185e28a08df49831f",
+      "createdAt": "1788265680",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "766d06a164046afa7c96d9b0f47a0f7caa855142b75caafaa18ac3d6323424d4",
+        "payload": "a9900795385495ab3c51c6acf3160440b3e6e2517fc3522408dac5388ea0e5bd",
+        "generation": "2"
+      }
+    },
+    "f9gwrbRHgsn4agaz6KkSvmXR5ekFJHT5yZ6WsgCYcHc": {
+      "hash": "887fb57d7b5a31caaed7b6290e6958597ffb14ba0368f9d2d60223c00ffcc638",
+      "createdAt": "1788266220",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "39069a249f322622452ce6f0b575e2af7809246a9c7b3a69b139f6e8bba7a7af",
+        "payload": "0f690b077daad49acbc17c153a07129298cbebe484458cc142b3df7d9af4e486",
+        "generation": "2"
+      }
+    },
+    "FEhLDXneoazg1qrVWkfZdMvuSViLgwjDGrQQRVFQLzA3": {
+      "hash": "8bf2227db50ad54c6fdd493ecd6bfbf238177f0e3646c633ccb7d9f1e5f775af",
+      "createdAt": "1788264180",
+      "source": {
+        "kind": "hash"
+      }
+    },
+    "GVSVW2qUbsRmHWTTN7Pp7VPm1asAPGKcDxbkytx1XGWD": {
+      "hash": "de639486e35a159ef07bf5cdb73850272a52b1df24b2a712ed532fadbdfd197a",
+      "createdAt": "1788265200",
+      "source": {
+        "kind": "batch",
+        "members": [
+          "bb55fe0ca2abd8c235f84816df77e96231415f4e4596160301256b1d383e8255",
+          "2147b74d4ed43936ecc889ca6cf6e33552ab6ca65faacd88c1bea97ce7bbf3d7",
+          "2234b693811c80041494cccfa59eb811a58103e1a0458949ff736c5d8f44e300"
+        ]
+      }
+    },
+    "HedYu31TVzSqgAkRQPjpkS3BYTqHs4Ch3Xo9mK8DDDwd": {
+      "hash": "65d25b6bcfef397e1312ef3df89754af9ba197a050c4d0f4038874170a0379e8",
+      "createdAt": "1788266280",
+      "source": {
+        "kind": "branch",
+        "previousHashId": "0c283c68a424b00ff42fa1bce649f759140dc5f78378cdb9020b9a7f6239aa7b",
+        "payload": "af2d18be302e5bdba84a7b5d0d040cf68cc4d2e345fe7bb1e1de2419dbcf5cb5",
+        "generation": "2"
+      }
+    }
+  }
+}
+

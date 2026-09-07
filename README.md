@@ -5,6 +5,9 @@ locally, register commitments on Solana, manage votes, create branches and
 batch/pack aggregates, commit account snapshots, check files against saved proofs,
 explore proof trees, merge proof files locally, and restore retained history.
 
+For a ready-to-import graph with real file digests and all record types, see the
+[proof-chain example](examples/proof-chain/README.md).
+
 The frontend uses the SDK from the contract submodule, with a small browser
 compatibility layer and synchronized IDL. There is no backend and no file upload.
 A timestamp records a historical commitment; it does not establish file creation

@@ -14,6 +14,14 @@
 !public/**
 !infra/
 !infra/**
+!examples/
+examples/**
+!examples/proof-chain/
+examples/proof-chain/**
+!examples/proof-chain/ledger/
+!examples/proof-chain/ledger/pack.json
+!examples/proof-chain/ledger/pack-vote.json
+!examples/proof-chain/ledger/program-id.txt
 !scripts/
 scripts/**
 !scripts/copy-metadata.sh

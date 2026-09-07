@@ -51,6 +51,7 @@ COPY --from=contract-build /workspace/accounts/build/ /
 # Keep compilers, source, build caches and generated keypairs out of runtime.
 FROM validator-tools AS localnet
 COPY --from=contract-build /workspace/accounts/build/ /artifacts/
+COPY examples/proof-chain/ledger/ /fixtures/proof-chain/
 COPY infra/localnet/entrypoint.sh /usr/local/bin/localnet-entrypoint
 WORKDIR /ledger
 ENTRYPOINT ["sh", "/usr/local/bin/localnet-entrypoint"]

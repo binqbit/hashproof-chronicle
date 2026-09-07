@@ -258,6 +258,26 @@ const content: Record<DocTopicId, ReactNode> = {
   ),
   proofs: (
     <>
+      <h2>Check a file against saved history</h2>
+      <p>
+        Open Proof check, choose your proof file and the file you want to check,
+        then click “Find file in proof”. Original and combined proof files are
+        supported. The file stays on your device.
+      </p>
+      <p>
+        The search covers saved versions and nested groups. Each match shows
+        that record’s own timestamp, not the time the group was created. If the
+        same file appears in several versions, all matches are listed, earliest
+        first. Missing history can hide other matches.
+      </p>
+      <GuideNote title="A saved date still needs checking" warning>
+        A match in a proof file is not network confirmation. Choose the original
+        network and click “Check on network — no fee” for a matching record. A
+        later record can confirm older history only when the necessary links are
+        complete. An unsuccessful check does not prove the file never existed.
+        These timestamps are not your device’s file creation dates.
+      </GuideNote>
+      <h2>Combine proof files</h2>
       <p>
         Bring saved proof files together into one download. Everything happens
         on your device: merging needs no wallet, network connection or fee.

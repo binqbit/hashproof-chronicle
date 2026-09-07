@@ -1,0 +1,23 @@
+.file-proof-results {
+  margin-top: 24px;
+  min-width: 0;
+}
+.file-proof-match {
+  display: grid;
+  gap: 14px;
+}
+.file-proof-time {
+  margin: 0;
+  font-size: 1.05rem;
+  color: hsl(var(--link));
+  overflow-wrap: anywhere;
+}
+.file-proof-confirmed {
+  border: 1px solid hsl(var(--success) / 40%);
+  background: hsl(var(--success) / 8%);
+  border-radius: 8px;
+  padding: 14px;
+}
+.file-proof-confirmed > strong {
+  color: hsl(var(--success));
+}

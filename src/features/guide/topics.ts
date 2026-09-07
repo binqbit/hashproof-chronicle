@@ -62,8 +62,8 @@ export const docTopics = [
   {
     id: "proofs",
     label: "Proof files",
-    title: "Combine your proof files",
-    description: "Keep your saved history together, without a wallet or a fee.",
+    title: "Check files and combine proofs",
+    description: "Find a file in saved history and keep your proofs together.",
     icon: Files,
   },
   {

@@ -11,6 +11,7 @@ import {
   Search,
   Database,
   Files,
+  FileCheck2,
 } from "lucide-react";
 import { PROGRAM_ID, PROGRAM_VERSION } from "../../contract/client";
 import { explorerUrl, useNetwork } from "../../contract/network";
@@ -25,6 +26,7 @@ import { AggregatePanel } from "../records/AggregatePanel";
 import { BranchPanel } from "../records/BranchPanel";
 import { RestorePanel } from "../history/RestorePanel";
 import { ProofsPanel } from "../history/ProofsPanel";
+import { FileProofPanel } from "../history/FileProofPanel";
 import { DocsLink } from "../guide/DocsLink";
 import { NetworkPicker } from "../../components/NetworkPicker";
 import { ConfirmationDialog } from "../../components/ConfirmationDialog";
@@ -43,6 +45,7 @@ const tabs = [
   { key: "account", label: "Account", icon: Database },
   { key: "restore", label: "Restore", icon: History },
   { key: "proofs", label: "Proofs", icon: Files },
+  { key: "proof-check", label: "Proof check", icon: FileCheck2 },
 ] as const;
 type Tab = (typeof tabs)[number]["key"];
 
@@ -247,6 +250,7 @@ function NetworkWorkspace() {
             {tab === "branch" && <BranchPanel {...props} />}
             {tab === "aggregate" && <AggregatePanel {...props} />}
             {tab === "account" && <AccountPanel {...props} />}
+            {tab === "proof-check" && <FileProofPanel />}
             {tab === "restore" && (
               <RestorePanel {...props} onHistory={retain} />
             )}

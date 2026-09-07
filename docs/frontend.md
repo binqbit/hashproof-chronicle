@@ -80,6 +80,7 @@ initiating control without changing the current network or history.
 | Account      | Commit the current metadata and data of a Solana account. Save the captured snapshot for historical proof use.                                                                                                                          |
 | Restore      | Import proof JSON, load retained history, then check commitments, dependencies, live state and transaction size before submitting proof-only validation or account recreation.                                                          |
 | Proofs       | Select several JSON archives or legacy proof files, merge matching nodes locally, review missing history, and download one SDK archive. No wallet or RPC required. |
+| Proof check  | Choose proof JSON and a resource file, find saved file timestamps across versions/groups, then optionally check a matching live record or complete historical path. No wallet or transaction required. |
 
 A raw file hash, a canonical record ID and a Solana PDA are different values.
 Operation buttons require their mandatory inputs; empty or whitespace-only
@@ -203,6 +204,38 @@ The collector limits traversal to 32 records. JSON imports allow at most 64
 entries and 2 MB. These are browser limits, **not transaction-size guarantees**.
 The SDK submits a single transaction; large chains/snapshots can exceed Solana
 limits. No automatic splitting or fabricated history is performed.
+
+## Check a file against a proof
+
+Open **Proof check**, choose one original/combined proof JSON and one resource
+file, then click **Find file in proof**. Import reuses the same parser and file
+limits as Batch / Pack (including program/RPC checks); resource SHA-256 is computed
+incrementally on-device. Nothing is uploaded.
+
+The search scans all supplied nodes, matching only Hash `hash` or Branch
+`source.payload`. Derived branch/group digests and Account metadata are not file
+digests. Batch/Pack membership leads to the stored member nodes; missing nodes
+cannot be searched. Matches show their own `createdAt`, ordered using exact
+integers and displayed 20 per page, never an enclosing group’s timestamp.
+
+Saved timestamps are explicitly unconfirmed. **Check on network — no fee** reads
+the selected record, then later connected candidate anchors, up to 32 per check.
+A direct live Hash/Branch must match its saved hash, full source and timestamp,
+and have votes. A later anchor must also have a complete dependency closure,
+validated by the SDK, containing the target. Missing siblings or witnesses never
+confer confirmation. Unrelated partial history does not invalidate a complete
+path. A recreated target can still be checked through a later matching anchor.
+
+This is a read-only RPC comparison plus local commitment validation, not a
+simulation, on-chain verification transaction, restoration, or guarantee about
+future chain state. It has no transaction-size limit. Missing state, incomplete
+history, read errors and the candidate cap remain **Not confirmed**, not evidence
+that the file never existed. Switch to the original network explicitly. These
+are historical commitment timestamps, not filesystem creation dates.
+
+Changing either file cancels or invalidates pending work and previous results;
+leaving the operation tab or switching networks clears this screen. Opening
+Docs preserves the mounted workspace. A search requires both valid files.
 
 ## Merge proof files
 
